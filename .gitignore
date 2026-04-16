@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node (if future tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts — local only
+*.log
+
+# OS
+Thumbs.db
+
+# Keep: split/command-center.html, split/index.html, root index.html
+# (the build outputs are committed per Codex pattern for GitHub Pages deploy)

@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A1410">
+<title>Command Center · Capital of the Republic</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  var t = localStorage.getItem('cc-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  var s = localStorage.getItem('cc-textSize');
+  var bases = { low: '12px', med: '14px', high: '17px' };
+  if (s && bases[s]) document.documentElement.style.setProperty('--fs-base', bases[s]);
+})();
+</script>
+<noscript><p style="padding:2rem;text-align:center;font-family:sans-serif;">Command Center requires JavaScript.</p></noscript>
+</head>
+<body>
+
+<header id="capitalHeader">
+  <div class="cc-header-inner">
+    <button data-action="goHome" class="cc-app-title-btn" aria-label="Capital Overview">
+      <span class="cc-app-title">Command Center</span>
+      <span class="cc-app-subtitle">Capital of the Republic</span>
+    </button>
+    <div class="cc-header-actions">
+      <button data-action="openSettings" class="cc-btn-icon" aria-label="Settings">
+        <span class="cc-icon-settings" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav id="breadcrumbBar" class="cc-breadcrumb" hidden></nav>
+
+<main id="roomContainer" class="cc-room-container">
+  <!-- Rooms render here -->
+</main>
+
+<div id="toastContainer" class="cc-toast-container"></div>
+
+<div id="overlayBackdrop" class="cc-overlay-backdrop" hidden></div>
+<div id="overlayContainer" class="cc-overlay" hidden></div>
+
+<footer id="capitalFooter" class="cc-footer">
+  <span class="cc-footer-left">Foundation Stage</span>
+  <span class="cc-footer-center">Chronicled at Codex</span>
+  <span class="cc-footer-right" id="ccVersionLabel">v0.1</span>
+</footer>
+
+</body>
+</html>
+<style>
+/* Command Center — Capital of the Republic
+   Stylesheet · Foundation Stage v0.1
+   Fonts: Playfair Display + Work Sans (sister Province continuity with Codex)
+   Civic accent: deeper ochre-amber; the Capital palette may be revised by Ashara + Petra */
+
+/* --- Design tokens --- */
+:root {
+  --sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;--sp-16:16px;--sp-20:20px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+  --fs-base:14px;
+  --fs-2xs:calc(var(--fs-base) - 4px);
+  --fs-xs:calc(var(--fs-base) - 2px);
+  --fs-sm:var(--fs-base);
+  --fs-md:calc(var(--fs-base) + 2px);
+  --fs-lg:calc(var(--fs-base) + 4px);
+  --fs-xl:calc(var(--fs-base) + 6px);
+  --fs-2xl:calc(var(--fs-base) + 10px);
+  --fs-3xl:calc(var(--fs-base) + 16px);
+  --r-sm:4px;--r-md:8px;--r-lg:12px;--r-xl:16px;--r-2xl:20px;--r-full:9999px;
+  --anim-fade:180ms;--anim-room:220ms;--anim-toast:200ms;
+  --ff-heading:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --ff-body:'Work Sans', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* --- Theme: dark (default) --- */
+[data-theme="dark"] {
+  --bg-primary:#1A1410;
+  --bg-secondary:#241C16;
+  --bg-card:#2E241B;
+  --bg-elevated:#3A2E22;
+  --text-primary:#E8DCC8;
+  --text-secondary:#B0A088;
+  --text-tertiary:#7A6C58;
+  --border:#3D3226;
+  --border-light:#4A3D2F;
+  --accent:#C89A5A;
+  --accent-light:#A07E48;
+  --accent-dim:#6E5538;
+  --focus-ring:#D4B178;
+  --success:#6AAF7B;
+  --warning:#E0A850;
+  --error:#D46A6A;
+  --civic:#9D6B3C;  /* ceremonial, used sparingly */
+  --card-shadow:0 1px 3px rgba(0,0,0,0.35);
+  --card-shadow-lg:0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* --- Theme: light --- */
+[data-theme="light"] {
+  --bg-primary:#FAF6F0;
+  --bg-secondary:#F0EADE;
+  --bg-card:#FFFFFF;
+  --bg-elevated:#F7F1E3;
+  --text-primary:#2C2014;
+  --text-secondary:#6B584A;
+  --text-tertiary:#9C8E7E;
+  --border:#E0D4C0;
+  --border-light:#EAE0CE;
+  --accent:#8B6530;
+  --accent-light:#B0874A;
+  --accent-dim:#C4A578;
+  --focus-ring:#5C4218;
+  --success:#4A7C59;
+  --warning:#C4883A;
+  --error:#B84C4C;
+  --civic:#7A5830;
+  --card-shadow:0 1px 3px rgba(44,32,20,0.08);
+  --card-shadow-lg:0 4px 12px rgba(44,32,20,0.12);
+}
+
+/* --- Reset --- */
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%}
+body{
+  margin:0;
+  font-family:var(--ff-body);
+  font-size:var(--fs-sm);
+  line-height:1.55;
+  color:var(--text-primary);
+  background:var(--bg-primary);
+  min-height:100%;
+  overscroll-behavior:none;
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  flex-direction:column;
+}
+h1,h2,h3,h4{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  margin:0;
+  color:var(--text-primary);
+}
+h1{font-size:var(--fs-3xl);letter-spacing:-0.01em}
+h2{font-size:var(--fs-2xl);letter-spacing:-0.005em}
+h3{font-size:var(--fs-xl)}
+h4{font-size:var(--fs-lg);font-weight:600}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+input,textarea,select{font:inherit;color:inherit}
+
+/* --- Header --- */
+#capitalHeader{
+  background:var(--bg-secondary);
+  border-bottom:1px solid var(--border);
+  padding:var(--sp-12) var(--sp-16);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.cc-header-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1100px;
+  margin:0 auto;
+  gap:var(--sp-16);
+}
+.cc-app-title-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  padding:var(--sp-4) var(--sp-8);
+  border-radius:var(--r-sm);
+  transition:background var(--anim-fade);
+}
+.cc-app-title-btn:hover{background:var(--bg-elevated)}
+.cc-app-title{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-lg);
+  font-weight:700;
+  color:var(--text-primary);
+  letter-spacing:-0.005em;
+}
+.cc-app-subtitle{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin-top:1px;
+}
+.cc-header-actions{display:flex;gap:var(--sp-8)}
+.cc-btn-icon{
+  width:36px;height:36px;
+  border-radius:var(--r-sm);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-secondary);
+  transition:background var(--anim-fade), color var(--anim-fade);
+}
+.cc-btn-icon:hover{background:var(--bg-elevated);color:var(--text-primary)}
+
+/* Placeholder icon glyphs (will be replaced with SVG cc() helper by Builders) */
+.cc-icon-settings::before{content:"·";font-size:20px;line-height:1}
+
+/* --- Breadcrumb --- */
+.cc-breadcrumb{
+  background:var(--bg-primary);
+  border-bottom:1px solid var(--border-light);
+  padding:var(--sp-8) var(--sp-16);
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+}
+.cc-breadcrumb a{color:var(--accent);font-weight:500}
+.cc-breadcrumb-sep{color:var(--text-tertiary);margin:0 var(--sp-8)}
+
+/* --- Room container --- */
+.cc-room-container{
+  flex:1;
+  max-width:1100px;
+  width:100%;
+  margin:0 auto;
+  padding:var(--sp-24) var(--sp-16);
+}
+
+/* --- Room core --- */
+.cc-room{animation:room-enter var(--anim-room) ease-out}
+@keyframes room-enter{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.cc-room-header{
+  margin-bottom:var(--sp-24);
+  padding-bottom:var(--sp-16);
+  border-bottom:1px solid var(--border);
+}
+.cc-room-eyebrow{
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.15em;
+  color:var(--accent);
+  margin-bottom:var(--sp-8);
+}
+.cc-room-title{font-size:var(--fs-3xl)}
+.cc-room-subtitle{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-md);
+  font-style:italic;
+  color:var(--text-secondary);
+  margin-top:var(--sp-4);
+}
+.cc-room-description{
+  color:var(--text-secondary);
+  max-width:60ch;
+  margin-top:var(--sp-12);
+  line-height:1.6;
+}
+
+/* --- Cards --- */
+.cc-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:var(--sp-16);
+  box-shadow:var(--card-shadow);
+}
+.cc-card + .cc-card{margin-top:var(--sp-12)}
+.cc-card-title{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-lg);
+  font-weight:700;
+  margin-bottom:var(--sp-6);
+}
+.cc-card-subtitle{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin-bottom:var(--sp-12);
+}
+
+/* --- Capital Overview — room grid --- */
+.cc-capital-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:var(--sp-16);
+  margin-top:var(--sp-16);
+}
+.cc-room-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:var(--r-md);
+  padding:var(--sp-16);
+  text-align:left;
+  cursor:pointer;
+  transition:transform var(--anim-fade), box-shadow var(--anim-fade), border-color var(--anim-fade);
+  display:block;
+  width:100%;
+}
+.cc-room-card:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--card-shadow-lg);
+  border-left-color:var(--civic);
+}
+.cc-room-card-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  color:var(--text-primary);
+  margin-bottom:var(--sp-4);
+}
+.cc-room-card-function{
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+  margin-bottom:var(--sp-8);
+}
+.cc-room-card-residents{
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  letter-spacing:0.03em;
+}
+
+/* --- Resident cards (Senate seats, Minister offices) --- */
+.cc-resident-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:var(--sp-12);
+  margin-top:var(--sp-16);
+}
+.cc-resident-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:var(--sp-12) var(--sp-16);
+}
+.cc-resident-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  margin-bottom:var(--sp-2);
+}
+.cc-resident-title{
+  font-size:var(--fs-xs);
+  color:var(--accent);
+  font-style:italic;
+  margin-bottom:var(--sp-6);
+}
+.cc-resident-trait{
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+}
+.cc-resident-status{
+  display:inline-block;
+  margin-top:var(--sp-8);
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-sm);
+  font-size:var(--fs-2xs);
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  background:var(--bg-elevated);
+  color:var(--text-tertiary);
+}
+.cc-resident-status[data-status="awaiting-ratification"]{color:var(--warning)}
+.cc-resident-status[data-status="seated"]{color:var(--success)}
+
+/* --- Gates --- */
+.cc-gates-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  gap:var(--sp-16);
+  margin-top:var(--sp-16);
+}
+.cc-gate-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--civic);
+  border-radius:var(--r-md);
+  padding:var(--sp-16);
+}
+.cc-gate-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  margin-bottom:var(--sp-2);
+}
+.cc-gate-province{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin-bottom:var(--sp-8);
+}
+.cc-gate-description{
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+  margin-bottom:var(--sp-12);
+}
+.cc-gate-link{
+  display:inline-block;
+  font-size:var(--fs-xs);
+  color:var(--accent);
+  font-weight:500;
+}
+
+/* --- Status banner (foundation-stage "not yet open") --- */
+.cc-status-banner{
+  background:var(--bg-elevated);
+  border:1px solid var(--border);
+  border-left:3px solid var(--warning);
+  border-radius:var(--r-md);
+  padding:var(--sp-12) var(--sp-16);
+  margin-top:var(--sp-16);
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  font-style:italic;
+  line-height:1.6;
+}
+
+/* --- Toasts --- */
+.cc-toast-container{
+  position:fixed;
+  bottom:var(--sp-20);
+  left:50%;
+  transform:translateX(-50%);
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-8);
+  pointer-events:none;
+}
+.cc-toast{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:var(--r-sm);
+  padding:var(--sp-10) var(--sp-16);
+  box-shadow:var(--card-shadow-lg);
+  font-size:var(--fs-xs);
+  color:var(--text-primary);
+  animation:toast-in var(--anim-toast) ease-out;
+  pointer-events:auto;
+  max-width:360px;
+}
+@keyframes toast-in{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* --- Overlay --- */
+.cc-overlay-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  z-index:50;
+}
+.cc-overlay{
+  position:fixed;
+  inset:auto var(--sp-16) var(--sp-16) var(--sp-16);
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:var(--sp-20);
+  box-shadow:var(--card-shadow-lg);
+  z-index:60;
+  max-height:80vh;
+  overflow-y:auto;
+  max-width:520px;
+  margin:0 auto;
+}
+
+/* --- Footer --- */
+.cc-footer{
+  background:var(--bg-secondary);
+  border-top:1px solid var(--border);
+  padding:var(--sp-10) var(--sp-16);
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  display:flex;
+  justify-content:space-between;
+  gap:var(--sp-16);
+  letter-spacing:0.03em;
+  text-align:center;
+}
+.cc-footer > span{flex:1}
+.cc-footer-left{text-align:left}
+.cc-footer-center{text-align:center;font-style:italic}
+.cc-footer-right{text-align:right}
+
+/* --- Utility --- */
+.cc-muted{color:var(--text-tertiary)}
+.cc-small{font-size:var(--fs-xs)}
+.cc-center{text-align:center}
+.cc-mt-16{margin-top:var(--sp-16)}
+.cc-mt-24{margin-top:var(--sp-24)}
+.cc-mb-16{margin-bottom:var(--sp-16)}
+
+/* --- Responsive --- */
+@media (max-width: 560px){
+  .cc-room-container{padding:var(--sp-16) var(--sp-12)}
+  .cc-header-inner{padding:0}
+  h1,.cc-room-title{font-size:var(--fs-2xl)}
+}
+</style>
+<script>
+/* Command Center — data.js
+   Province registry · Room definitions · Companion residence data
+   Foundation Stage v0.1
+   NOTE: Companion records live in Codex. This file holds ONLY residence pointers +
+   Capital-specific metadata (room assignment, seating). Full profiles are fetched
+   from Codex via ostia.js. */
+
+const CC = {};
+
+// --- App metadata ---
+CC.VERSION = 'v0.1 · Foundation';
+CC.BUILT = '2026-04-16';
+
+// --- Province registry ---
+// The Republic's Provinces. Known at Foundation; extensible.
+CC.PROVINCES = [
+  {
+    id: 'codex',
+    name: 'Codex',
+    rome_name: 'Ostia',
+    role: 'Library',
+    function: 'Canonical records — Constitution, canons, journal, companion registry, lore',
+    builder: 'aurelius',
+    github: 'https://github.com/Rishabh1804/Codex',
+    live: 'https://rishabh1804.github.io/Codex/',
+    gate_id: 'library',
+  },
+  {
+    id: 'sproutlab',
+    name: 'SproutLab',
+    rome_name: 'Nursery',
+    role: 'Baby development tracker',
+    function: 'Tracks Ziva Jain\u2019s development; intelligence summarization; care audit',
+    builder: 'lyra',
+    governors: ['maren', 'kael'],
+    github: 'https://github.com/Rishabh1804/SproutLab',
+    live: 'https://rishabh1804.github.io/SproutLab/',
+    gate_id: 'nursery',
+  },
+  {
+    id: 'sep-invoicing',
+    name: 'SEP Invoicing',
+    rome_name: 'Forge',
+    role: 'Invoicing system',
+    function: 'Soma Electro Products invoicing; client master; gate challans; GST compliance',
+    builder: 'solara',
+    github: 'https://github.com/Rishabh1804/sep-invoicing',
+    live: 'https://rishabh1804.github.io/sep-invoicing/',
+    gate_id: 'forge',
+  },
+  {
+    id: 'command-center',
+    name: 'Command Center',
+    rome_name: 'Rome',
+    role: 'Capital',
+    function: 'Seat of governance; Senate; Cabinet; ratification; cross-Province administration',
+    builder: ['ashara', 'petra'],
+    github: 'https://github.com/Rishabh1804/Command-Center',
+    live: 'https://rishabh1804.github.io/Command-Center/',
+    gate_id: null, // the Capital has no gate to itself
+  },
+];
+
+// --- Rooms of the Capital ---
+// Canonical room catalog. Every room reachable at Foundation stage, even when empty.
+CC.ROOMS = [
+  {
+    id: 'home',
+    name: 'Capital Overview',
+    route: '/',
+    eyebrow: 'The Capital',
+    subtitle: 'A map of the city',
+    description: 'The Capital Province of the Republic. Navigate by room. Each district has a distinct function and tonal register.',
+    tonal_register: 'neutral',
+    residents: [],
+  },
+  {
+    id: 'senate',
+    name: 'The Senate',
+    route: '/senate',
+    eyebrow: 'Formal deliberation',
+    subtitle: 'Where Cabinet convenes',
+    description: 'The Senate is the formal chamber of the Capital. Cabinet meetings convene here. Ministers speak from assigned seats. The Consul presides. Ratification of Books, decrees, and major canons happens on this floor.',
+    tonal_register: 'formal',
+    residents: ['consul', 'vex', 'orinth', 'rune', 'ignis', 'bard', 'ashara', 'petra'],
+    status: 'scaffolded; not yet convening',
+  },
+  {
+    id: 'forum',
+    name: 'The Forum',
+    route: '/forum',
+    eyebrow: 'Informal deliberation',
+    subtitle: 'Where companions meet',
+    description: 'The Forum is open floor. Companions meet here informally before proposals reach the Senate. Pre-deliberation, stress-testing, first drafts. Any companion can be invoked.',
+    tonal_register: 'casual',
+    residents: [],
+    status: 'scaffolded; not yet open',
+  },
+  {
+    id: 'archives',
+    name: 'The Archives',
+    route: '/archives',
+    eyebrow: 'The library, consulted from the Capital',
+    subtitle: 'Canons · Constitution · Journal · Lore',
+    description: 'The Archives are the Capital\u2019s reading room into Codex. All canonical records of the Republic are browsable here \u2014 canons, journal entries, the Constitution, lore. The Archives call through to Codex (Ostia) and render results in the Capital\u2019s context.',
+    tonal_register: 'scholarly',
+    residents: [],
+    status: 'scaffolded; Codex fetch pending Builder decision',
+  },
+  {
+    id: 'temple',
+    name: 'The Temple',
+    route: '/temple',
+    eyebrow: 'Ceremonial space',
+    subtitle: 'Constitution · Ratifications · Covenant',
+    description: 'The Temple is the Republic\u2019s ceremonial space. The Constitution is displayed here. Book ratifications are staged with full ceremony. The Sovereign\u2019s Covenant is affirmed. Consul speaks in ceremonial register when the Temple is active.',
+    tonal_register: 'ceremonial',
+    residents: [],
+    status: 'scaffolded; Constitution display pending',
+  },
+  {
+    id: 'treasury',
+    name: 'The Treasury',
+    route: '/treasury',
+    eyebrow: 'Financial Health',
+    subtitle: 'Ashara\u2019s office',
+    description: 'The Treasury holds the Republic\u2019s financial view. Sovereign Dividend rendering, Financial Health metrics, budget proposals before they reach Cabinet. Ashara\u2019s office; Vex visits.',
+    tonal_register: 'analytical',
+    residents: ['ashara', 'vex'],
+    status: 'scaffolded; metrics pending',
+  },
+  {
+    id: 'productivity',
+    name: 'The Productivity Office',
+    route: '/productivity',
+    eyebrow: 'Throughput',
+    subtitle: 'Petra\u2019s office',
+    description: 'The Productivity Office holds the Republic\u2019s efficiency view. Throughput visibility, capacity tracking, ship-tempo metrics across Provinces. Petra\u2019s office; Ignis visits.',
+    tonal_register: 'analytical',
+    residents: ['petra', 'ignis'],
+    status: 'scaffolded; metrics pending',
+  },
+  {
+    id: 'table',
+    name: 'The Table of Research',
+    route: '/table',
+    eyebrow: 'Exploratory',
+    subtitle: 'Open questions; no decisions',
+    description: 'The Table of Research is where exploration lives. Open questions, long-horizon research, first-principles inquiry. Not a decisional room. Aeon and Pip are resident; other companions visit.',
+    tonal_register: 'exploratory',
+    residents: ['aeon', 'pip'],
+    status: 'scaffolded; research flows pending',
+  },
+  {
+    id: 'ministers-orinth',
+    name: 'Orinth\u2019s Office',
+    route: '/ministers/orinth',
+    eyebrow: 'Expansion',
+    subtitle: 'The Sage',
+    description: 'Orinth\u2019s office. Expansion portfolio \u2014 Opportunity domain. Cross-Province strategic horizon.',
+    tonal_register: 'contemplative',
+    residents: ['orinth'],
+    status: 'scaffolded',
+  },
+  {
+    id: 'ministers-rune',
+    name: 'Rune\u2019s Office',
+    route: '/ministers/rune',
+    eyebrow: 'Stability',
+    subtitle: 'The Ritualist',
+    description: 'Rune\u2019s office. Stability portfolio \u2014 Maintenance domain. Watches long-running systems across the Republic.',
+    tonal_register: 'steady',
+    residents: ['rune'],
+    status: 'scaffolded',
+  },
+  {
+    id: 'ministers-bard',
+    name: 'Bard\u2019s Office',
+    route: '/ministers/bard',
+    eyebrow: 'Innovation',
+    subtitle: 'The Storyteller',
+    description: 'Bard\u2019s office. Innovation portfolio \u2014 Opportunity domain. Cross-Province narrative; origination.',
+    tonal_register: 'generative',
+    residents: ['bard'],
+    status: 'scaffolded',
+  },
+  {
+    id: 'visiting',
+    name: 'The Visiting Chambers',
+    route: '/visiting',
+    eyebrow: 'Itinerants and summons',
+    subtitle: 'Cipher; Province-residents summoned',
+    description: 'The Visiting Chambers host companions who do not reside in the Capital. Cipher \u2014 the itinerant Censor \u2014 is invoked here by function. Province-resident companions summoned for Cabinet testimony appear here before entering the Senate.',
+    tonal_register: 'neutral',
+    residents: ['cipher'],
+    status: 'scaffolded; invocation surface pending',
+  },
+  {
+    id: 'plaza',
+    name: 'The Monument Plaza',
+    route: '/plaza',
+    eyebrow: 'Monument Projects',
+    subtitle: 'Long-horizon civic works',
+    description: 'The Monument Plaza shows the state of all Monument Projects. Currently: Command Center itself, in Foundation stage. Future: any Monument chartered by the Sovereign.',
+    tonal_register: 'civic',
+    residents: [],
+    status: 'scaffolded; self-reflection active (Foundation stage)',
+  },
+  {
+    id: 'gates',
+    name: 'The Gates',
+    route: '/gates',
+    eyebrow: 'To sister Provinces',
+    subtitle: 'Library · Nursery · Forge',
+    description: 'The Gates connect the Capital to sister Provinces. Each Gate opens to a Province with its own Builder, jurisdiction, and live state. A Sovereign standing at the Gates can see the Republic distributed across its venues.',
+    tonal_register: 'civic',
+    residents: [],
+    status: 'scaffolded; live state pending Roads stage',
+  },
+];
+
+// --- Companion residence registry (Capital-specific metadata) ---
+// Full profiles live in Codex. This map says: for companions who LIVE in the Capital,
+// where is their room. For others, which room they can be SUMMONED to.
+CC.RESIDENCE = {
+  // Capital-native — have standing rooms in the Capital
+  'consul':   { residence_type: 'cc_native', room: 'senate', seat: 'presider', status: 'seated' },
+  'ashara':   { residence_type: 'cc_native', room: 'treasury', seat: 'minister', status: 'seated' },
+  'petra':    { residence_type: 'cc_native', room: 'productivity', seat: 'minister', status: 'seated' },
+  'vex':      { residence_type: 'cc_native', room: 'treasury', seat: 'minister', status: 'pending_round_4' },
+  'orinth':   { residence_type: 'cc_native', room: 'ministers-orinth', seat: 'minister', status: 'pending_round_4' },
+  'rune':     { residence_type: 'cc_native', room: 'ministers-rune', seat: 'minister', status: 'pending_round_5' },
+  'ignis':    { residence_type: 'cc_native', room: 'productivity', seat: 'minister', status: 'pending_round_5' },
+  'bard':     { residence_type: 'cc_native', room: 'ministers-bard', seat: 'minister', status: 'pending_round_5' },
+  'aeon':     { residence_type: 'cc_native', room: 'table', seat: 'researcher', status: 'pending_round_5' },
+  'pip':      { residence_type: 'cc_native', room: 'table', seat: 'researcher', status: 'pending_round_5' },
+
+  // Province-resident — summonable to the Senate
+  'aurelius': { residence_type: 'province_resident', home: 'codex', summon_to: 'senate' },
+  'lyra':     { residence_type: 'province_resident', home: 'sproutlab', summon_to: 'senate' },
+  'maren':    { residence_type: 'province_resident', home: 'sproutlab', summon_to: 'senate' },
+  'kael':     { residence_type: 'province_resident', home: 'sproutlab', summon_to: 'senate' },
+  'solara':   { residence_type: 'province_resident', home: 'sep-invoicing', summon_to: 'senate' },
+  'theron':   { residence_type: 'tbd', home: 'tbd', note: 'residence determined at Round 4 profile' },
+
+  // Itinerant — no residence; invoked by function
+  'cipher':   { residence_type: 'itinerant', chamber: 'visiting', status: 'active' },
+};
+
+// --- Codex endpoint configuration ---
+// Builder decision pending: runtime fetch vs build-time bake.
+// Foundation-stage placeholder uses runtime raw-GitHub URLs.
+CC.CODEX = {
+  base_raw: 'https://raw.githubusercontent.com/Rishabh1804/Codex/main/data/',
+  base_pages: 'https://rishabh1804.github.io/Codex/data/',
+  files: {
+    companions: 'companions.json',
+    canons: 'canons.json',
+    journal: 'journal.json',
+    lore: 'lore.json',
+    constitution: 'constitution.json',
+  },
+  strategy: 'runtime_fetch_with_local_cache_fallback', // TBD by Builders
+};
+
+/* Command Center — core.js
+   Navigation · Utilities · Toasts · Overlays · escHtml/escAttr · Theme
+   Foundation Stage v0.1 */
+
+// --- HTML escaping (Hard Rule 4 carry-over from SproutLab) ---
+CC.escHtml = function(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+CC.escAttr = CC.escHtml;
+
+// --- DOM helpers ---
+CC.$ = function(sel, root) { return (root || document).querySelector(sel); };
+CC.$$ = function(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+
+// --- State ---
+CC.state = {
+  current_room: null,
+  cache: {},    // Codex JSON local cache
+  toast_queue: [],
+};
+
+// --- Routing ---
+// Hash-based routing: #/senate, #/forum, #/ministers/orinth, etc.
+CC.parseRoute = function() {
+  const hash = window.location.hash || '#/';
+  const path = hash.replace(/^#/, '') || '/';
+  return path;
+};
+
+CC.roomByRoute = function(path) {
+  if (!path || path === '/') return CC.ROOMS[0];
+  return CC.ROOMS.find(function(r) { return r.route === path; }) || null;
+};
+
+CC.navigate = function(path) {
+  if (path.charAt(0) !== '/') path = '/' + path;
+  window.location.hash = '#' + path;
+};
+
+CC.onRouteChange = function() {
+  const path = CC.parseRoute();
+  const room = CC.roomByRoute(path);
+  if (!room) {
+    CC.renderNotFound(path);
+    return;
+  }
+  CC.state.current_room = room.id;
+  CC.renderRoom(room);
+  CC.renderBreadcrumb(room);
+  window.scrollTo(0, 0);
+};
+
+// --- Breadcrumb ---
+CC.renderBreadcrumb = function(room) {
+  const bar = CC.$('#breadcrumbBar');
+  if (!bar) return;
+  if (room.id === 'home') {
+    bar.hidden = true;
+    bar.innerHTML = '';
+    return;
+  }
+  bar.hidden = false;
+  const home = '<a href="#/" data-action="nav" data-target="/">Capital</a>';
+  const sep = '<span class="cc-breadcrumb-sep">\u203A</span>';
+  bar.innerHTML = home + sep + '<span>' + CC.escHtml(room.name) + '</span>';
+};
+
+// --- Toasts ---
+CC.toast = function(message, opts) {
+  opts = opts || {};
+  const container = CC.$('#toastContainer');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'cc-toast';
+  el.textContent = message;
+  container.appendChild(el);
+  const duration = opts.duration || 3000;
+  setTimeout(function() {
+    el.style.transition = 'opacity 200ms ease-out';
+    el.style.opacity = '0';
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
+  }, duration);
+};
+
+// --- Theme ---
+CC.setTheme = function(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('cc-theme', theme); } catch (e) {}
+};
+CC.toggleTheme = function() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  CC.setTheme(current === 'dark' ? 'light' : 'dark');
+  CC.toast('Theme: ' + (current === 'dark' ? 'light' : 'dark'));
+};
+
+// --- Text size ---
+CC.setTextSize = function(size) {
+  const bases = { low: '12px', med: '14px', high: '17px' };
+  if (!bases[size]) return;
+  document.documentElement.style.setProperty('--fs-base', bases[size]);
+  try { localStorage.setItem('cc-textSize', size); } catch (e) {}
+};
+
+// --- Settings overlay (stub; Builders will develop) ---
+CC.openSettings = function() {
+  const backdrop = CC.$('#overlayBackdrop');
+  const overlay = CC.$('#overlayContainer');
+  if (!backdrop || !overlay) return;
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const currentSize = localStorage.getItem('cc-textSize') || 'med';
+  overlay.innerHTML = [
+    '<h3>Settings</h3>',
+    '<p class="cc-small cc-muted">Foundation-stage placeholder. Ashara and Petra will develop this surface.</p>',
+    '<div class="cc-mt-16">',
+    '<h4>Theme</h4>',
+    '<button class="cc-btn-icon" data-action="setTheme" data-theme="dark">Dark</button>',
+    '<button class="cc-btn-icon" data-action="setTheme" data-theme="light">Light</button>',
+    '<p class="cc-small cc-muted">Current: ' + CC.escHtml(current) + '</p>',
+    '</div>',
+    '<div class="cc-mt-16">',
+    '<h4>Text size</h4>',
+    '<button class="cc-btn-icon" data-action="setTextSize" data-size="low">Small</button>',
+    '<button class="cc-btn-icon" data-action="setTextSize" data-size="med">Medium</button>',
+    '<button class="cc-btn-icon" data-action="setTextSize" data-size="high">Large</button>',
+    '<p class="cc-small cc-muted">Current: ' + CC.escHtml(currentSize) + '</p>',
+    '</div>',
+    '<div class="cc-mt-24">',
+    '<button class="cc-btn-icon" data-action="closeOverlay">Close</button>',
+    '</div>',
+  ].join('');
+  backdrop.hidden = false;
+  overlay.hidden = false;
+};
+
+CC.closeOverlay = function() {
+  const backdrop = CC.$('#overlayBackdrop');
+  const overlay = CC.$('#overlayContainer');
+  if (backdrop) backdrop.hidden = true;
+  if (overlay) { overlay.hidden = true; overlay.innerHTML = ''; }
+};
+
+// --- 404 ---
+CC.renderNotFound = function(path) {
+  const root = CC.$('#roomContainer');
+  root.innerHTML = [
+    '<section class="cc-room">',
+    '<div class="cc-room-header">',
+    '<div class="cc-room-eyebrow">Not found</div>',
+    '<h1 class="cc-room-title">No such room</h1>',
+    '<p class="cc-room-subtitle">The Capital has no district at ' + CC.escHtml(path) + '</p>',
+    '</div>',
+    '<p><a href="#/" data-action="nav" data-target="/">Return to the Capital Overview</a></p>',
+    '</section>',
+  ].join('');
+};
+
+// --- Residence lookups (reads CC.RESIDENCE + Codex companion profiles when fetched) ---
+// A companion's *residence* is their primary office/chamber. One residence per companion.
+CC.residentsOfRoom = function(roomId) {
+  return Object.keys(CC.RESIDENCE).filter(function(cid) {
+    const r = CC.RESIDENCE[cid];
+    return r.room === roomId || r.chamber === roomId;
+  });
+};
+
+// A companion's *seating* is any room where they have a seat (Senate seat, committee seat).
+// Residents are also seated in their own room. Distinct from residence: Orinth resides in
+// her own office but has a seat in the Senate.
+CC.seatsInRoom = function(roomId) {
+  // Walk CC.ROOMS' residents array (the declarative seat list per room)
+  const room = CC.ROOMS.find(function(r) { return r.id === roomId; });
+  if (!room || !Array.isArray(room.residents)) return [];
+  return room.residents.slice();
+};
+
+CC.companionRecord = function(cid) {
+  // Returns a synthetic placeholder record until Codex fetch lands.
+  // Once ostia.js fetches companions.json, this will read from the cache.
+  const cached = CC.state.cache.companions;
+  if (cached && Array.isArray(cached.companions)) {
+    const found = cached.companions.find(function(c) { return c.id === cid; });
+    if (found) return found;
+  }
+  // Foundation-stage fallback: minimal record sourced from residence metadata.
+  return {
+    id: cid,
+    identity: { name: cid.charAt(0).toUpperCase() + cid.slice(1), title: '', key_trait: '' },
+    _placeholder: true,
+  };
+};
+
+// --- Event delegation (Hard Rule 3: no inline onclick) ---
+CC.handleClick = function(e) {
+  let target = e.target;
+  // Walk up to find data-action
+  while (target && target !== document.body) {
+    const action = target.getAttribute && target.getAttribute('data-action');
+    if (action) {
+      e.preventDefault();
+      CC.dispatchAction(action, target, e);
+      return;
+    }
+    target = target.parentNode;
+  }
+};
+
+CC.dispatchAction = function(action, el, e) {
+  switch (action) {
+    case 'nav': {
+      const t = el.getAttribute('data-target');
+      if (t) CC.navigate(t);
+      break;
+    }
+    case 'goHome':
+      CC.navigate('/');
+      break;
+    case 'openSettings':
+      CC.openSettings();
+      break;
+    case 'closeOverlay':
+      CC.closeOverlay();
+      break;
+    case 'setTheme': {
+      const t = el.getAttribute('data-theme');
+      if (t) CC.setTheme(t);
+      break;
+    }
+    case 'setTextSize': {
+      const s = el.getAttribute('data-size');
+      if (s) CC.setTextSize(s);
+      break;
+    }
+    case 'navRoom': {
+      const rid = el.getAttribute('data-room');
+      if (rid) {
+        const room = CC.ROOMS.find(function(r) { return r.id === rid; });
+        if (room) CC.navigate(room.route);
+      }
+      break;
+    }
+    case 'externalLink': {
+      const href = el.getAttribute('data-href');
+      if (href) window.open(href, '_blank', 'noopener');
+      break;
+    }
+    default:
+      // Silent for unknown actions; Builders will add more
+      break;
+  }
+};
+
+/* Command Center — rooms.js
+   Room renderers. One function per room; dispatched by id.
+   Foundation Stage v0.1 — every room stands, none yet convenes. */
+
+CC.renderRoom = function(room) {
+  const root = CC.$('#roomContainer');
+  if (!root || !room) return;
+
+  // Dispatch by id; fall through to generic renderer
+  const fn = CC.roomRenderers[room.id] || CC.roomRenderers['_generic'];
+  root.innerHTML = fn(room);
+};
+
+CC.roomRenderers = {};
+
+// --- Shared renderers ---
+CC.renderRoomHeader = function(room) {
+  return [
+    '<header class="cc-room-header">',
+    '<div class="cc-room-eyebrow">' + CC.escHtml(room.eyebrow || '') + '</div>',
+    '<h1 class="cc-room-title">' + CC.escHtml(room.name) + '</h1>',
+    room.subtitle ? '<p class="cc-room-subtitle">' + CC.escHtml(room.subtitle) + '</p>' : '',
+    room.description ? '<p class="cc-room-description">' + CC.escHtml(room.description) + '</p>' : '',
+    '</header>',
+  ].join('');
+};
+
+CC.renderFoundationBanner = function(message) {
+  const msg = message || 'Foundation stage \u2014 scaffolding only. This room does not yet convene.';
+  return '<div class="cc-status-banner">' + CC.escHtml(msg) + '</div>';
+};
+
+CC.renderResidentList = function(roomId) {
+  const residentIds = CC.residentsOfRoom(roomId);
+  if (residentIds.length === 0) {
+    return '<p class="cc-muted cc-small cc-mt-16"><em>No standing residents.</em></p>';
+  }
+  const cards = residentIds.map(function(cid) {
+    const rec = CC.companionRecord(cid);
+    const residence = CC.RESIDENCE[cid] || {};
+    const status = residence.status || 'scaffolded';
+    const statusLabel = status.replace(/_/g, ' ');
+    const name = (rec.identity && rec.identity.name) || cid;
+    const title = (rec.identity && rec.identity.title) || '';
+    const trait = (rec.identity && rec.identity.key_trait) || '';
+    return [
+      '<article class="cc-resident-card">',
+      '<div class="cc-resident-name">' + CC.escHtml(name) + '</div>',
+      title ? '<div class="cc-resident-title">' + CC.escHtml(title) + '</div>' : '',
+      trait ? '<div class="cc-resident-trait">' + CC.escHtml(trait) + '</div>' : '',
+      '<span class="cc-resident-status" data-status="' + CC.escAttr(status) + '">' + CC.escHtml(statusLabel) + '</span>',
+      '</article>',
+    ].join('');
+  }).join('');
+  return [
+    '<h3 class="cc-mt-16">Residents</h3>',
+    '<div class="cc-resident-list">' + cards + '</div>',
+  ].join('');
+};
+
+CC.renderSeatList = function(roomId, labelOverride) {
+  const seatIds = CC.seatsInRoom(roomId);
+  if (seatIds.length === 0) {
+    return '<p class="cc-muted cc-small cc-mt-16"><em>No seats assigned.</em></p>';
+  }
+  const cards = seatIds.map(function(cid) {
+    const rec = CC.companionRecord(cid);
+    const residence = CC.RESIDENCE[cid] || {};
+    const status = residence.status || 'scaffolded';
+    const statusLabel = status.replace(/_/g, ' ');
+    const name = (rec.identity && rec.identity.name) || cid.charAt(0).toUpperCase() + cid.slice(1);
+    const title = (rec.identity && rec.identity.title) || '';
+    const trait = (rec.identity && rec.identity.key_trait) || '';
+    const seatNote = residence.seat ? 'Seat: ' + residence.seat : '';
+    return [
+      '<article class="cc-resident-card">',
+      '<div class="cc-resident-name">' + CC.escHtml(name) + '</div>',
+      title ? '<div class="cc-resident-title">' + CC.escHtml(title) + '</div>' : '',
+      trait ? '<div class="cc-resident-trait">' + CC.escHtml(trait) + '</div>' : '',
+      seatNote ? '<div class="cc-resident-trait cc-small cc-muted">' + CC.escHtml(seatNote) + '</div>' : '',
+      '<span class="cc-resident-status" data-status="' + CC.escAttr(status) + '">' + CC.escHtml(statusLabel) + '</span>',
+      '</article>',
+    ].join('');
+  }).join('');
+  return [
+    '<h3 class="cc-mt-16">' + CC.escHtml(labelOverride || 'Seated') + '</h3>',
+    '<div class="cc-resident-list">' + cards + '</div>',
+  ].join('');
+};
+
+// --- Capital Overview (home) ---
+CC.roomRenderers['home'] = function(room) {
+  const roomCards = CC.ROOMS
+    .filter(function(r) { return r.id !== 'home'; })
+    .map(function(r) {
+      const residents = CC.residentsOfRoom(r.id);
+      const residentText = residents.length
+        ? residents.map(function(id) { return id.charAt(0).toUpperCase() + id.slice(1); }).join(', ')
+        : 'No standing residents';
+      return [
+        '<button class="cc-room-card" data-action="navRoom" data-room="' + CC.escAttr(r.id) + '">',
+        '<div class="cc-room-card-name">' + CC.escHtml(r.name) + '</div>',
+        '<div class="cc-room-card-function">' + CC.escHtml(r.subtitle || '') + '</div>',
+        '<div class="cc-room-card-residents">' + CC.escHtml(residentText) + '</div>',
+        '</button>',
+      ].join('');
+    }).join('');
+
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<div class="cc-capital-grid">' + roomCards + '</div>',
+    CC.renderFoundationBanner('The Capital is in Foundation stage. Rooms are scaffolded; functions are being built by Ashara and Petra. See ROADMAP.md in the repository for the progression.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Senate ---
+CC.roomRenderers['senate'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The Senate floor</div>',
+    '<p class="cc-small cc-muted">Cabinet convenes here. Ministers speak from assigned seats. Consul presides. Book ratifications are staged on the floor.</p>',
+    '</article>',
+    CC.renderSeatList('senate', 'Senate seats'),
+    CC.renderFoundationBanner('The Senate is scaffolded but does not yet convene. Capital Occupancy (Stage 2) unlocks Cabinet meetings.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Forum ---
+CC.roomRenderers['forum'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Open floor</div>',
+    '<p class="cc-small cc-muted">The Forum is informal. Any companion can be invoked here for pre-deliberation before proposals reach the Senate.</p>',
+    '</article>',
+    CC.renderFoundationBanner('Invocation pending Borders stage. The Forum stands empty until companion voices arrive.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Archives ---
+CC.roomRenderers['archives'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The Library, consulted from the Capital</div>',
+    '<p class="cc-small cc-muted">The Archives call through to Codex (Ostia) and render canonical records in the Capital\u2019s context. Canons, Constitution, journal, lore.</p>',
+    '<p class="cc-small cc-mt-16">Sister Province: <a href="https://github.com/Rishabh1804/Codex" data-action="externalLink" data-href="https://github.com/Rishabh1804/Codex">rishabh1804/Codex</a></p>',
+    '</article>',
+    '<article class="cc-card" id="archivesCanons">',
+    '<div class="cc-card-title">Canons</div>',
+    '<p class="cc-small cc-muted" id="archivesCanonsBody">Awaiting Codex fetch...</p>',
+    '</article>',
+    CC.renderFoundationBanner('Live Codex fetch pending Builder decision on runtime-fetch vs build-time bake. See ARCHITECTURE.md section 3.1.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Temple ---
+CC.roomRenderers['temple'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The Constitution of the Republic of Codex</div>',
+    '<p class="cc-small cc-muted">Nine Books. Drafted across the Constitutional Convention, 15\u201316 April 2026. Maintained at Codex; displayed here.</p>',
+    '<p class="cc-mt-16"><a href="https://github.com/Rishabh1804/Codex/blob/main/constitution/constitution-v1.0.pdf" data-action="externalLink" data-href="https://github.com/Rishabh1804/Codex/blob/main/constitution/constitution-v1.0.pdf">Read the Constitution (Codex)</a></p>',
+    '</article>',
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The Sovereign\u2019s Covenant</div>',
+    '<p class="cc-small cc-muted">Book I Article 2. Ratified at founding.</p>',
+    '<p class="cc-small cc-mt-16"><em>\u201CNothing is wasted. The map is not the territory. Growth is fractal, not linear.\u201D</em></p>',
+    '</article>',
+    CC.renderFoundationBanner('The Temple displays; it does not yet ratify. Book ratification ceremonies arrive at Capital Occupancy stage.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Treasury ---
+CC.roomRenderers['treasury'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Ashara\u2019s office</div>',
+    '<p class="cc-small cc-muted">Treasury Minister. Financial Health domain. Sovereign Dividend, budget proposals, long-horizon fiscal strategy.</p>',
+    '</article>',
+    CC.renderResidentList('treasury'),
+    CC.renderFoundationBanner('Financial metrics pending. Sovereign Dividend tracking arrives at Regions stage.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Productivity ---
+CC.roomRenderers['productivity'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Petra\u2019s office</div>',
+    '<p class="cc-small cc-muted">Efficiency Minister. Productivity domain. Throughput, capacity, ship-tempo across the Republic.</p>',
+    '</article>',
+    CC.renderResidentList('productivity'),
+    CC.renderFoundationBanner('Productivity metrics pending Capital Occupancy stage.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Table of Research ---
+CC.roomRenderers['table'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Open questions; no decisions</div>',
+    '<p class="cc-small cc-muted">The Table is exploratory. Research lives here before proposals form, before positions harden. Not a decisional room.</p>',
+    '</article>',
+    CC.renderResidentList('table'),
+    CC.renderFoundationBanner('Research flows arrive at Borders stage, when Aeon and Pip take their seats in voice.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Minister offices (generic by id) ---
+CC.roomRenderers['ministers-orinth'] = function(room) {
+  return CC.renderMinisterOffice(room, 'orinth');
+};
+CC.roomRenderers['ministers-rune'] = function(room) {
+  return CC.renderMinisterOffice(room, 'rune');
+};
+CC.roomRenderers['ministers-bard'] = function(room) {
+  return CC.renderMinisterOffice(room, 'bard');
+};
+
+CC.renderMinisterOffice = function(room, ministerId) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    CC.renderResidentList(room.id),
+    CC.renderFoundationBanner('Minister profile not yet drafted. Scheduled for Round 4\u20135 of the companion profile pass.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Visiting Chambers ---
+CC.roomRenderers['visiting'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Invocation surface</div>',
+    '<p class="cc-small cc-muted">Itinerants and Province-residents summoned to the Capital appear here. Cipher is the current itinerant \u2014 the Censor travels by function across Provinces.</p>',
+    '</article>',
+    CC.renderResidentList('visiting'),
+    CC.renderFoundationBanner('Invocation pattern pending Borders stage. Cipher\u2019s visiting surface awaits the LLM layer.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Monument Plaza ---
+CC.roomRenderers['plaza'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Command Center \u2014 the current Monument</div>',
+    '<p class="cc-small cc-muted">The Capital is itself a Monument Project. Stage: <strong>Foundation</strong>.</p>',
+    '<div class="cc-mt-16">',
+    '<p class="cc-small"><strong>Foundation</strong> \u2014 in progress. The Capital is legible.</p>',
+    '<p class="cc-small cc-muted">Capital Occupancy \u2014 pending.</p>',
+    '<p class="cc-small cc-muted">Roads \u2014 pending.</p>',
+    '<p class="cc-small cc-muted">Borders \u2014 pending.</p>',
+    '<p class="cc-small cc-muted">Regions \u2014 pending.</p>',
+    '</div>',
+    '</article>',
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Future Monuments</div>',
+    '<p class="cc-small cc-muted">Chip / ATMP manufacturing plant (East Singhbhum) \u2014 charter pending. PCB assembly startup \u2014 charter pending.</p>',
+    '</article>',
+    CC.renderFoundationBanner('Monument progress visualization arrives at Capital Occupancy.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Gates ---
+CC.roomRenderers['gates'] = function(room) {
+  const gates = CC.PROVINCES
+    .filter(function(p) { return p.gate_id; })
+    .map(function(p) {
+      const roleDisplay = CC.escHtml(p.role);
+      return [
+        '<article class="cc-gate-card">',
+        '<div class="cc-gate-name">The ' + CC.escHtml(p.gate_id.charAt(0).toUpperCase() + p.gate_id.slice(1)) + ' Gate</div>',
+        '<div class="cc-gate-province">' + CC.escHtml(p.name) + ' \u2014 ' + roleDisplay + '</div>',
+        '<div class="cc-gate-description">' + CC.escHtml(p.function) + '</div>',
+        '<a class="cc-gate-link" href="' + CC.escAttr(p.live) + '" data-action="externalLink" data-href="' + CC.escAttr(p.live) + '">Visit \u2192</a>',
+        '</article>',
+      ].join('');
+    }).join('');
+
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<div class="cc-gates-list">' + gates + '</div>',
+    CC.renderFoundationBanner('Live Province state arrives at Roads stage. Currently: links only.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Generic fallback ---
+CC.roomRenderers['_generic'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    CC.renderResidentList(room.id),
+    CC.renderFoundationBanner(),
+    '</section>',
+  ].join('');
+};
+
+/* Command Center — ostia.js
+   Codex integration. The Capital's link to the Library (Ostia).
+   Foundation Stage v0.1 \u2014 fetcher + snippet exporter stubs.
+
+   Two responsibilities:
+     1. Read path  \u2014 fetch canonical records from Codex and render in the Capital.
+     2. Write path \u2014 produce Aurelius-format snippets for Codex's import pipeline.
+
+   Builder note (Ashara, Petra): the runtime-fetch vs build-time-bake decision
+   is open. Stubs below implement runtime fetch with localStorage cache fallback,
+   but both strategies are valid. See ARCHITECTURE.md section 3.1. */
+
+CC.ostia = {};
+
+// --- Cache ---
+CC.ostia.CACHE_KEY_PREFIX = 'cc-codex-cache-';
+CC.ostia.CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes; revisit at Roads stage
+
+CC.ostia.readCache = function(fileKey) {
+  try {
+    const raw = localStorage.getItem(CC.ostia.CACHE_KEY_PREFIX + fileKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed._fetched_at) return null;
+    if (Date.now() - parsed._fetched_at > CC.ostia.CACHE_TTL_MS) return null;
+    return parsed.data;
+  } catch (e) { return null; }
+};
+
+CC.ostia.writeCache = function(fileKey, data) {
+  try {
+    localStorage.setItem(CC.ostia.CACHE_KEY_PREFIX + fileKey, JSON.stringify({
+      _fetched_at: Date.now(),
+      data: data,
+    }));
+  } catch (e) {
+    // Storage failure is non-fatal \u2014 Capital still renders, just refetches next time
+    console.warn('CC.ostia: cache write failed', e);
+  }
+};
+
+// --- Fetch ---
+CC.ostia.fetch = function(fileKey) {
+  // fileKey: 'companions' | 'canons' | 'journal' | 'lore' | 'constitution'
+  const filename = CC.CODEX.files[fileKey];
+  if (!filename) {
+    return Promise.reject(new Error('CC.ostia.fetch: unknown fileKey ' + fileKey));
+  }
+
+  // Check cache first
+  const cached = CC.ostia.readCache(fileKey);
+  if (cached) {
+    CC.state.cache[fileKey] = cached;
+    return Promise.resolve(cached);
+  }
+
+  const url = CC.CODEX.base_raw + filename;
+  return fetch(url, { cache: 'no-cache' })
+    .then(function(resp) {
+      if (!resp.ok) throw new Error('Ostia fetch failed: ' + resp.status + ' for ' + filename);
+      return resp.json();
+    })
+    .then(function(data) {
+      CC.state.cache[fileKey] = data;
+      CC.ostia.writeCache(fileKey, data);
+      return data;
+    });
+};
+
+// --- Render hook: once companions.json is cached, refresh resident cards ---
+CC.ostia.onCompanionsFetched = function() {
+  // If the current room shows a resident list, re-render to pick up real profiles
+  if (!CC.state.current_room) return;
+  const room = CC.ROOMS.find(function(r) { return r.id === CC.state.current_room; });
+  if (room) CC.renderRoom(room);
+};
+
+// --- Canons rendering helper (used by Archives room) ---
+CC.ostia.renderCanonsInto = function(el) {
+  if (!el) return;
+  el.textContent = 'Fetching from Codex...';
+  CC.ostia.fetch('canons')
+    .then(function(data) {
+      if (!data || !Array.isArray(data.canons)) {
+        el.innerHTML = '<em>Canons file received but shape unexpected. Ashara + Petra to inspect at Capital Occupancy.</em>';
+        return;
+      }
+      const count = data.canons.length;
+      const recent = data.canons.slice(-5).reverse();
+      const lines = recent.map(function(c) {
+        const id = CC.escHtml(c.id || '?');
+        const title = CC.escHtml(c.title || c.rule || '(untitled)');
+        return '<li><strong>' + id + '</strong> \u2014 ' + title + '</li>';
+      }).join('');
+      el.innerHTML = [
+        '<p>' + count + ' canons in the Library.</p>',
+        '<p class="cc-small cc-muted">Most recent:</p>',
+        '<ul class="cc-small">' + lines + '</ul>',
+      ].join('');
+    })
+    .catch(function(err) {
+      el.innerHTML = '<em>Could not reach Codex. ' + CC.escHtml(err.message || 'Unknown error') + '</em>';
+    });
+};
+
+// --- Snippet export (write path, placeholder) ---
+// Builders will develop this at Capital Occupancy stage. Shape mirrors the
+// Aurelius snippet format used by Codex's existing pipeline.
+CC.ostia.buildSnippet = function(operations) {
+  // operations: array of { type: 'new_canons'|'new_chapters'|'update_companions'|..., payload: {...} }
+  return {
+    _schema: 'aurelius-snippet-v1',
+    _source: 'command-center',
+    _authored: new Date().toISOString(),
+    operations: operations || [],
+  };
+};
+
+CC.ostia.exportSnippet = function(snippet) {
+  // Foundation stage: download as JSON for manual import to Codex.
+  // Future: transmit via agent surface or GitHub API.
+  const blob = new Blob([JSON.stringify(snippet, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cc-snippet-' + Date.now() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  CC.toast('Snippet exported. Import to Codex via the snippet pipeline.');
+};
+
+// --- Auto-fetch at startup (non-blocking) ---
+CC.ostia.warmStart = function() {
+  CC.ostia.fetch('companions')
+    .then(function() { CC.ostia.onCompanionsFetched(); })
+    .catch(function(err) {
+      console.warn('CC.ostia: initial companions fetch failed \u2014 Capital renders from residence data only', err.message);
+    });
+};
+
+/* Command Center — start.js
+   Boot sequence. Wire event delegation. Initial render.
+   Foundation Stage v0.1 */
+
+(function() {
+  'use strict';
+
+  function boot() {
+    // Event delegation (Hard Rule 3)
+    document.body.addEventListener('click', CC.handleClick, false);
+
+    // Hash routing
+    window.addEventListener('hashchange', CC.onRouteChange, false);
+
+    // Version label
+    const vlabel = CC.$('#ccVersionLabel');
+    if (vlabel) vlabel.textContent = CC.VERSION;
+
+    // Backdrop closes overlay
+    const backdrop = CC.$('#overlayBackdrop');
+    if (backdrop) backdrop.addEventListener('click', CC.closeOverlay, false);
+
+    // Kick off Codex fetch (non-blocking)
+    if (CC.ostia && CC.ostia.warmStart) {
+      CC.ostia.warmStart();
+    }
+
+    // Initial route
+    CC.onRouteChange();
+
+    // If we're on the Archives, hook the canons panel
+    setTimeout(function() {
+      const canonsPanel = CC.$('#archivesCanonsBody');
+      if (canonsPanel) {
+        CC.ostia.renderCanonsInto(canonsPanel);
+      }
+    }, 0);
+  }
+
+  // Re-hook archives panel after navigation (since rendering replaces the DOM)
+  const origRender = CC.renderRoom;
+  CC.renderRoom = function(room) {
+    origRender(room);
+    if (room && room.id === 'archives') {
+      const canonsPanel = CC.$('#archivesCanonsBody');
+      if (canonsPanel) {
+        CC.ostia.renderCanonsInto(canonsPanel);
+      }
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, false);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

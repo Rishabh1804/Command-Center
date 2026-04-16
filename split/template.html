@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A1410">
+<title>Command Center · Capital of the Republic</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  var t = localStorage.getItem('cc-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  var s = localStorage.getItem('cc-textSize');
+  var bases = { low: '12px', med: '14px', high: '17px' };
+  if (s && bases[s]) document.documentElement.style.setProperty('--fs-base', bases[s]);
+})();
+</script>
+<noscript><p style="padding:2rem;text-align:center;font-family:sans-serif;">Command Center requires JavaScript.</p></noscript>
+</head>
+<body>
+
+<header id="capitalHeader">
+  <div class="cc-header-inner">
+    <button data-action="goHome" class="cc-app-title-btn" aria-label="Capital Overview">
+      <span class="cc-app-title">Command Center</span>
+      <span class="cc-app-subtitle">Capital of the Republic</span>
+    </button>
+    <div class="cc-header-actions">
+      <button data-action="openSettings" class="cc-btn-icon" aria-label="Settings">
+        <span class="cc-icon-settings" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav id="breadcrumbBar" class="cc-breadcrumb" hidden></nav>
+
+<main id="roomContainer" class="cc-room-container">
+  <!-- Rooms render here -->
+</main>
+
+<div id="toastContainer" class="cc-toast-container"></div>
+
+<div id="overlayBackdrop" class="cc-overlay-backdrop" hidden></div>
+<div id="overlayContainer" class="cc-overlay" hidden></div>
+
+<footer id="capitalFooter" class="cc-footer">
+  <span class="cc-footer-left">Foundation Stage</span>
+  <span class="cc-footer-center">Chronicled at Codex</span>
+  <span class="cc-footer-right" id="ccVersionLabel">v0.1</span>
+</footer>
+
+</body>
+</html>

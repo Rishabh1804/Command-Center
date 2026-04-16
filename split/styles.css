@@ -1,0 +1,455 @@
+/* Command Center — Capital of the Republic
+   Stylesheet · Foundation Stage v0.1
+   Fonts: Playfair Display + Work Sans (sister Province continuity with Codex)
+   Civic accent: deeper ochre-amber; the Capital palette may be revised by Ashara + Petra */
+
+/* --- Design tokens --- */
+:root {
+  --sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;--sp-16:16px;--sp-20:20px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+  --fs-base:14px;
+  --fs-2xs:calc(var(--fs-base) - 4px);
+  --fs-xs:calc(var(--fs-base) - 2px);
+  --fs-sm:var(--fs-base);
+  --fs-md:calc(var(--fs-base) + 2px);
+  --fs-lg:calc(var(--fs-base) + 4px);
+  --fs-xl:calc(var(--fs-base) + 6px);
+  --fs-2xl:calc(var(--fs-base) + 10px);
+  --fs-3xl:calc(var(--fs-base) + 16px);
+  --r-sm:4px;--r-md:8px;--r-lg:12px;--r-xl:16px;--r-2xl:20px;--r-full:9999px;
+  --anim-fade:180ms;--anim-room:220ms;--anim-toast:200ms;
+  --ff-heading:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --ff-body:'Work Sans', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* --- Theme: dark (default) --- */
+[data-theme="dark"] {
+  --bg-primary:#1A1410;
+  --bg-secondary:#241C16;
+  --bg-card:#2E241B;
+  --bg-elevated:#3A2E22;
+  --text-primary:#E8DCC8;
+  --text-secondary:#B0A088;
+  --text-tertiary:#7A6C58;
+  --border:#3D3226;
+  --border-light:#4A3D2F;
+  --accent:#C89A5A;
+  --accent-light:#A07E48;
+  --accent-dim:#6E5538;
+  --focus-ring:#D4B178;
+  --success:#6AAF7B;
+  --warning:#E0A850;
+  --error:#D46A6A;
+  --civic:#9D6B3C;  /* ceremonial, used sparingly */
+  --card-shadow:0 1px 3px rgba(0,0,0,0.35);
+  --card-shadow-lg:0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* --- Theme: light --- */
+[data-theme="light"] {
+  --bg-primary:#FAF6F0;
+  --bg-secondary:#F0EADE;
+  --bg-card:#FFFFFF;
+  --bg-elevated:#F7F1E3;
+  --text-primary:#2C2014;
+  --text-secondary:#6B584A;
+  --text-tertiary:#9C8E7E;
+  --border:#E0D4C0;
+  --border-light:#EAE0CE;
+  --accent:#8B6530;
+  --accent-light:#B0874A;
+  --accent-dim:#C4A578;
+  --focus-ring:#5C4218;
+  --success:#4A7C59;
+  --warning:#C4883A;
+  --error:#B84C4C;
+  --civic:#7A5830;
+  --card-shadow:0 1px 3px rgba(44,32,20,0.08);
+  --card-shadow-lg:0 4px 12px rgba(44,32,20,0.12);
+}
+
+/* --- Reset --- */
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%}
+body{
+  margin:0;
+  font-family:var(--ff-body);
+  font-size:var(--fs-sm);
+  line-height:1.55;
+  color:var(--text-primary);
+  background:var(--bg-primary);
+  min-height:100%;
+  overscroll-behavior:none;
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  flex-direction:column;
+}
+h1,h2,h3,h4{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  margin:0;
+  color:var(--text-primary);
+}
+h1{font-size:var(--fs-3xl);letter-spacing:-0.01em}
+h2{font-size:var(--fs-2xl);letter-spacing:-0.005em}
+h3{font-size:var(--fs-xl)}
+h4{font-size:var(--fs-lg);font-weight:600}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+input,textarea,select{font:inherit;color:inherit}
+
+/* --- Header --- */
+#capitalHeader{
+  background:var(--bg-secondary);
+  border-bottom:1px solid var(--border);
+  padding:var(--sp-12) var(--sp-16);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.cc-header-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1100px;
+  margin:0 auto;
+  gap:var(--sp-16);
+}
+.cc-app-title-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  padding:var(--sp-4) var(--sp-8);
+  border-radius:var(--r-sm);
+  transition:background var(--anim-fade);
+}
+.cc-app-title-btn:hover{background:var(--bg-elevated)}
+.cc-app-title{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-lg);
+  font-weight:700;
+  color:var(--text-primary);
+  letter-spacing:-0.005em;
+}
+.cc-app-subtitle{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin-top:1px;
+}
+.cc-header-actions{display:flex;gap:var(--sp-8)}
+.cc-btn-icon{
+  width:36px;height:36px;
+  border-radius:var(--r-sm);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-secondary);
+  transition:background var(--anim-fade), color var(--anim-fade);
+}
+.cc-btn-icon:hover{background:var(--bg-elevated);color:var(--text-primary)}
+
+/* Placeholder icon glyphs (will be replaced with SVG cc() helper by Builders) */
+.cc-icon-settings::before{content:"·";font-size:20px;line-height:1}
+
+/* --- Breadcrumb --- */
+.cc-breadcrumb{
+  background:var(--bg-primary);
+  border-bottom:1px solid var(--border-light);
+  padding:var(--sp-8) var(--sp-16);
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+}
+.cc-breadcrumb a{color:var(--accent);font-weight:500}
+.cc-breadcrumb-sep{color:var(--text-tertiary);margin:0 var(--sp-8)}
+
+/* --- Room container --- */
+.cc-room-container{
+  flex:1;
+  max-width:1100px;
+  width:100%;
+  margin:0 auto;
+  padding:var(--sp-24) var(--sp-16);
+}
+
+/* --- Room core --- */
+.cc-room{animation:room-enter var(--anim-room) ease-out}
+@keyframes room-enter{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.cc-room-header{
+  margin-bottom:var(--sp-24);
+  padding-bottom:var(--sp-16);
+  border-bottom:1px solid var(--border);
+}
+.cc-room-eyebrow{
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.15em;
+  color:var(--accent);
+  margin-bottom:var(--sp-8);
+}
+.cc-room-title{font-size:var(--fs-3xl)}
+.cc-room-subtitle{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-md);
+  font-style:italic;
+  color:var(--text-secondary);
+  margin-top:var(--sp-4);
+}
+.cc-room-description{
+  color:var(--text-secondary);
+  max-width:60ch;
+  margin-top:var(--sp-12);
+  line-height:1.6;
+}
+
+/* --- Cards --- */
+.cc-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:var(--sp-16);
+  box-shadow:var(--card-shadow);
+}
+.cc-card + .cc-card{margin-top:var(--sp-12)}
+.cc-card-title{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-lg);
+  font-weight:700;
+  margin-bottom:var(--sp-6);
+}
+.cc-card-subtitle{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin-bottom:var(--sp-12);
+}
+
+/* --- Capital Overview — room grid --- */
+.cc-capital-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:var(--sp-16);
+  margin-top:var(--sp-16);
+}
+.cc-room-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:var(--r-md);
+  padding:var(--sp-16);
+  text-align:left;
+  cursor:pointer;
+  transition:transform var(--anim-fade), box-shadow var(--anim-fade), border-color var(--anim-fade);
+  display:block;
+  width:100%;
+}
+.cc-room-card:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--card-shadow-lg);
+  border-left-color:var(--civic);
+}
+.cc-room-card-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  color:var(--text-primary);
+  margin-bottom:var(--sp-4);
+}
+.cc-room-card-function{
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+  margin-bottom:var(--sp-8);
+}
+.cc-room-card-residents{
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  letter-spacing:0.03em;
+}
+
+/* --- Resident cards (Senate seats, Minister offices) --- */
+.cc-resident-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:var(--sp-12);
+  margin-top:var(--sp-16);
+}
+.cc-resident-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:var(--sp-12) var(--sp-16);
+}
+.cc-resident-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  margin-bottom:var(--sp-2);
+}
+.cc-resident-title{
+  font-size:var(--fs-xs);
+  color:var(--accent);
+  font-style:italic;
+  margin-bottom:var(--sp-6);
+}
+.cc-resident-trait{
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+}
+.cc-resident-status{
+  display:inline-block;
+  margin-top:var(--sp-8);
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-sm);
+  font-size:var(--fs-2xs);
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  background:var(--bg-elevated);
+  color:var(--text-tertiary);
+}
+.cc-resident-status[data-status="awaiting-ratification"]{color:var(--warning)}
+.cc-resident-status[data-status="seated"]{color:var(--success)}
+
+/* --- Gates --- */
+.cc-gates-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  gap:var(--sp-16);
+  margin-top:var(--sp-16);
+}
+.cc-gate-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--civic);
+  border-radius:var(--r-md);
+  padding:var(--sp-16);
+}
+.cc-gate-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  margin-bottom:var(--sp-2);
+}
+.cc-gate-province{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin-bottom:var(--sp-8);
+}
+.cc-gate-description{
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+  margin-bottom:var(--sp-12);
+}
+.cc-gate-link{
+  display:inline-block;
+  font-size:var(--fs-xs);
+  color:var(--accent);
+  font-weight:500;
+}
+
+/* --- Status banner (foundation-stage "not yet open") --- */
+.cc-status-banner{
+  background:var(--bg-elevated);
+  border:1px solid var(--border);
+  border-left:3px solid var(--warning);
+  border-radius:var(--r-md);
+  padding:var(--sp-12) var(--sp-16);
+  margin-top:var(--sp-16);
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  font-style:italic;
+  line-height:1.6;
+}
+
+/* --- Toasts --- */
+.cc-toast-container{
+  position:fixed;
+  bottom:var(--sp-20);
+  left:50%;
+  transform:translateX(-50%);
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-8);
+  pointer-events:none;
+}
+.cc-toast{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:var(--r-sm);
+  padding:var(--sp-10) var(--sp-16);
+  box-shadow:var(--card-shadow-lg);
+  font-size:var(--fs-xs);
+  color:var(--text-primary);
+  animation:toast-in var(--anim-toast) ease-out;
+  pointer-events:auto;
+  max-width:360px;
+}
+@keyframes toast-in{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* --- Overlay --- */
+.cc-overlay-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  z-index:50;
+}
+.cc-overlay{
+  position:fixed;
+  inset:auto var(--sp-16) var(--sp-16) var(--sp-16);
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:var(--sp-20);
+  box-shadow:var(--card-shadow-lg);
+  z-index:60;
+  max-height:80vh;
+  overflow-y:auto;
+  max-width:520px;
+  margin:0 auto;
+}
+
+/* --- Footer --- */
+.cc-footer{
+  background:var(--bg-secondary);
+  border-top:1px solid var(--border);
+  padding:var(--sp-10) var(--sp-16);
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  display:flex;
+  justify-content:space-between;
+  gap:var(--sp-16);
+  letter-spacing:0.03em;
+  text-align:center;
+}
+.cc-footer > span{flex:1}
+.cc-footer-left{text-align:left}
+.cc-footer-center{text-align:center;font-style:italic}
+.cc-footer-right{text-align:right}
+
+/* --- Utility --- */
+.cc-muted{color:var(--text-tertiary)}
+.cc-small{font-size:var(--fs-xs)}
+.cc-center{text-align:center}
+.cc-mt-16{margin-top:var(--sp-16)}
+.cc-mt-24{margin-top:var(--sp-24)}
+.cc-mb-16{margin-bottom:var(--sp-16)}
+
+/* --- Responsive --- */
+@media (max-width: 560px){
+  .cc-room-container{padding:var(--sp-16) var(--sp-12)}
+  .cc-header-inner{padding:0}
+  h1,.cc-room-title{font-size:var(--fs-2xl)}
+}
