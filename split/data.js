@@ -241,7 +241,7 @@ CC.RESIDENCE = {
   'maren':    { residence_type: 'province_resident', home: 'sproutlab', summon_to: 'senate' },
   'kael':     { residence_type: 'province_resident', home: 'sproutlab', summon_to: 'senate' },
   'solara':   { residence_type: 'province_resident', home: 'sep-invoicing', summon_to: 'senate' },
-  'theron':   { residence_type: 'tbd', home: 'tbd', note: 'residence determined at Round 4 profile' },
+  'theron':   { residence_type: 'province_resident', home: 'sep-dashboard', summon_to: 'senate' },
 
   // Itinerant — no residence; invoked by function
   'cipher':   { residence_type: 'itinerant', chamber: 'visiting', status: 'active' },
