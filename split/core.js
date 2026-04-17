@@ -122,31 +122,41 @@ CC.setTextSize = function(size) {
   try { localStorage.setItem('cc-textSize', size); } catch (e) {}
 };
 
-// --- Settings overlay (stub; Builders will develop) ---
+CC.THEME_LABELS = { dark: 'Dark', light: 'Light' };
+CC.TEXT_SIZE_LABELS = { low: 'Small', med: 'Medium', high: 'Large' };
+
+// --- Settings overlay (Foundation — refined; Builders will extend) ---
 CC.openSettings = function() {
   const backdrop = CC.$('#overlayBackdrop');
   const overlay = CC.$('#overlayContainer');
   if (!backdrop || !overlay) return;
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const currentSize = localStorage.getItem('cc-textSize') || 'med';
+  const themeBtn = function(id) {
+    const selected = id === current ? ' aria-pressed="true"' : ' aria-pressed="false"';
+    return '<button class="cc-pref-btn" data-action="setTheme" data-theme="' + CC.escAttr(id) + '"' + selected + '>'
+      + CC.escHtml(CC.THEME_LABELS[id] || id) + '</button>';
+  };
+  const sizeBtn = function(id) {
+    const selected = id === currentSize ? ' aria-pressed="true"' : ' aria-pressed="false"';
+    return '<button class="cc-pref-btn" data-action="setTextSize" data-size="' + CC.escAttr(id) + '"' + selected + '>'
+      + CC.escHtml(CC.TEXT_SIZE_LABELS[id] || id) + '</button>';
+  };
   overlay.innerHTML = [
-    '<h3>Settings</h3>',
-    '<p class="cc-small cc-muted">Foundation-stage placeholder. Ashara and Petra will develop this surface.</p>',
-    '<div class="cc-mt-16">',
-    '<h4>Theme</h4>',
-    '<button class="cc-btn-icon" data-action="setTheme" data-theme="dark">Dark</button>',
-    '<button class="cc-btn-icon" data-action="setTheme" data-theme="light">Light</button>',
-    '<p class="cc-small cc-muted">Current: ' + CC.escHtml(current) + '</p>',
+    '<h3 class="cc-overlay-title">Settings</h3>',
+    '<p class="cc-small cc-muted">Foundation-stage surface. Ashara and Petra will extend this at Capital Occupancy.</p>',
+    '<div class="cc-pref-group">',
+    '<h4 class="cc-pref-label">Theme</h4>',
+    '<div class="cc-pref-row">' + themeBtn('dark') + themeBtn('light') + '</div>',
+    '<p class="cc-pref-current">Current: ' + CC.escHtml(CC.THEME_LABELS[current] || current) + '</p>',
     '</div>',
-    '<div class="cc-mt-16">',
-    '<h4>Text size</h4>',
-    '<button class="cc-btn-icon" data-action="setTextSize" data-size="low">Small</button>',
-    '<button class="cc-btn-icon" data-action="setTextSize" data-size="med">Medium</button>',
-    '<button class="cc-btn-icon" data-action="setTextSize" data-size="high">Large</button>',
-    '<p class="cc-small cc-muted">Current: ' + CC.escHtml(currentSize) + '</p>',
+    '<div class="cc-pref-group">',
+    '<h4 class="cc-pref-label">Text size</h4>',
+    '<div class="cc-pref-row">' + sizeBtn('low') + sizeBtn('med') + sizeBtn('high') + '</div>',
+    '<p class="cc-pref-current">Current: ' + CC.escHtml(CC.TEXT_SIZE_LABELS[currentSize] || currentSize) + '</p>',
     '</div>',
-    '<div class="cc-mt-24">',
-    '<button class="cc-btn-icon" data-action="closeOverlay">Close</button>',
+    '<div class="cc-pref-actions">',
+    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="closeOverlay">Close</button>',
     '</div>',
   ].join('');
   backdrop.hidden = false;
@@ -243,12 +253,21 @@ CC.dispatchAction = function(action, el, e) {
       break;
     case 'setTheme': {
       const t = el.getAttribute('data-theme');
-      if (t) CC.setTheme(t);
+      if (t) {
+        CC.setTheme(t);
+        // Refresh Settings overlay if open so aria-pressed reflects new state.
+        const overlay = CC.$('#overlayContainer');
+        if (overlay && !overlay.hidden) CC.openSettings();
+      }
       break;
     }
     case 'setTextSize': {
       const s = el.getAttribute('data-size');
-      if (s) CC.setTextSize(s);
+      if (s) {
+        CC.setTextSize(s);
+        const overlay = CC.$('#overlayContainer');
+        if (overlay && !overlay.hidden) CC.openSettings();
+      }
       break;
     }
     case 'navRoom': {

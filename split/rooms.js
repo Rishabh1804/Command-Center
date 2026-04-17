@@ -160,6 +160,18 @@ CC.formatCivicDate = function(d) {
   return 'The ' + day + ' Day of ' + month + ', ' + year;
 };
 
+// Render the civic date with the year wrapped in a nowrap span so the four-word
+// year ("Two Thousand Twenty-Six") never breaks mid-phrase on narrow viewports.
+CC.renderCivicDateHTML = function() {
+  var date = new Date();
+  var dayIdx = date.getDate() - 1;
+  var day = CC.ORDINAL_DAYS[dayIdx] || String(date.getDate());
+  var month = CC.MONTH_NAMES[date.getMonth()] || '';
+  var year = CC.YEAR_WORDS[date.getFullYear()] || String(date.getFullYear());
+  return 'The ' + CC.escHtml(day) + ' Day of ' + CC.escHtml(month) + ', '
+    + '<span class="cc-nowrap">' + CC.escHtml(year) + '</span>';
+};
+
 // --- Civic Hearth — the Dawn Page of the Capital, per Edict IV ---
 // Warm, quiet, inviting. Presence first, activity second, demands never.
 // A hearth with an inscribed wall.
@@ -168,7 +180,7 @@ CC.renderHearthHeader = function() {
   return [
     '<header class="cc-hearth-header">',
     '<div class="cc-hearth-eyebrow">The Capital Stands</div>',
-    '<div class="cc-hearth-date">' + CC.escHtml(CC.formatCivicDate()) + '</div>',
+    '<div class="cc-hearth-date">' + CC.renderCivicDateHTML() + '</div>',
     '<p class="cc-hearth-stage">',
     'The Capital is at Foundation. The Senate is scaffolded but does not yet convene. ',
     'The Ministers hold their offices. The Gates are open. The Library is within reach.',
@@ -192,20 +204,25 @@ CC.renderHearthCards = function() {
     '</article>',
   ].join(''));
 
-  // Card 2 — most recent canon ratified.
+  // Card 2 — most recent canon ratified. When multiple canons share the same
+  // `created` date (common for canons authored in the same session), prefer
+  // the last-inserted in the array — that matches "latest added" semantics.
   var canonsData = (CC.state.cache && CC.state.cache.canons) || null;
   var canonLine = 'Fetching from the Library.';
   var canonMeta = 'Consulted via Ostia';
   if (canonsData && Array.isArray(canonsData.canons) && canonsData.canons.length > 0) {
-    // Sort by created descending; fall back to array order.
-    var sorted = canonsData.canons.slice().sort(function(a, b) {
-      var da = a && a.created ? String(a.created) : '';
-      var db = b && b.created ? String(b.created) : '';
-      if (da < db) return 1;
-      if (da > db) return -1;
-      return 0;
+    var latest = null;
+    var maxDate = '';
+    canonsData.canons.forEach(function(c) {
+      if (!c || c._deleted) return;
+      var d = c.created ? String(c.created) : '';
+      // `>=` so later-in-array wins tie on same date.
+      if (d >= maxDate) {
+        maxDate = d;
+        latest = c;
+      }
     });
-    var latest = sorted[0] || canonsData.canons[canonsData.canons.length - 1];
+    if (!latest) latest = canonsData.canons[canonsData.canons.length - 1];
     if (latest) {
       var title = latest.title || latest.rule || latest.id || '(untitled)';
       canonLine = CC.escHtml(title);
@@ -253,16 +270,19 @@ CC.renderHearthCards = function() {
 };
 
 // City map — rooms as districts. Charter Art. 4: the Capital is a city.
+// When a room has no residents, the residents line is omitted rather than
+// repeating "No standing residents" across every empty civic tile. Empty
+// cards read cleaner than cards labeled with their own absence.
 CC.renderRoomTileCard = function(r) {
   var residents = CC.residentsOfRoom(r.id);
   var residentText = residents.length
     ? residents.map(function(id) { return id.charAt(0).toUpperCase() + id.slice(1); }).join(', ')
-    : 'No standing residents';
+    : '';
   return [
     '<button class="cc-room-card" data-action="navRoom" data-room="' + CC.escAttr(r.id) + '">',
     '<div class="cc-room-card-name">' + CC.escHtml(r.name) + '</div>',
     '<div class="cc-room-card-function">' + CC.escHtml(r.subtitle || '') + '</div>',
-    '<div class="cc-room-card-residents">' + CC.escHtml(residentText) + '</div>',
+    residentText ? '<div class="cc-room-card-residents">' + CC.escHtml(residentText) + '</div>' : '',
     '</button>',
   ].join('');
 };
