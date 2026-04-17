@@ -197,35 +197,36 @@ CC.applyOrientation = function(pref, opts) {
       CC._orientationLockStatus = { ok: false, reason: 'Orientation lock not supported by this browser.' };
       return;
     }
-    // Try the more specific lock first; if that rejects with NotSupportedError
-    // (some browsers disallow the -primary suffix), fall back to generic 'portrait'.
-    var tryLock = function(spec, isFallback) {
-      var p;
-      try { p = screen.orientation.lock(spec); } catch (e) {
-        CC._orientationLockStatus = { ok: false, reason: 'lock threw: ' + (e && e.message || e) };
-        if (opts.notify) CC.toast('Lock failed: ' + (e.message || e));
-        return;
-      }
-      if (!p || typeof p.then !== 'function') {
-        CC._orientationLockStatus = { ok: true, reason: 'locked (sync) to ' + spec };
-        return;
-      }
-      p.then(function() {
-        CC._orientationLockStatus = { ok: true, reason: 'locked to ' + spec };
-        if (opts.notify) CC.toast('Orientation locked to portrait.');
-      }).catch(function(err) {
-        if (!isFallback && /portrait-primary/i.test(spec)) {
-          tryLock('portrait', true);
-          return;
-        }
-        var hint = CC.isStandalone()
-          ? (err && err.name === 'SecurityError' ? 'Needs user gesture; try toggling again.' : 'Browser refused lock.')
-          : 'Install the Capital as an app (Chrome menu -> Install app) so orientation lock can apply. Currently viewing in a browser tab.';
-        CC._orientationLockStatus = { ok: false, reason: (err && err.message) || String(err), hint: hint };
-        if (opts.notify) CC.toast('Lock failed: ' + hint);
-      });
-    };
-    tryLock('portrait-primary', false);
+    // Use the generic 'portrait' target (accepts portrait-primary or
+    // portrait-secondary). No async fallback — a retry after promise rejection
+    // runs outside the user-gesture window and fails with SecurityError,
+    // masking the real cause. Keeping it single-shot surfaces the true error.
+    var p;
+    try { p = screen.orientation.lock('portrait'); } catch (e) {
+      CC._orientationLockStatus = { ok: false, reason: 'lock threw: ' + (e && e.message || e) };
+      if (opts.notify) CC.toast('Lock failed: ' + (e.message || e));
+      return;
+    }
+    if (!p || typeof p.then !== 'function') {
+      CC._orientationLockStatus = { ok: true, reason: 'locked (sync) to portrait' };
+      return;
+    }
+    p.then(function() {
+      CC._orientationLockStatus = { ok: true, reason: 'locked to portrait' };
+      if (opts.notify) CC.toast('Orientation locked to portrait.');
+    }).catch(function(err) {
+      var name = (err && err.name) || '';
+      var msg = (err && err.message) || String(err);
+      var hint = CC.isStandalone()
+        ? (name === 'SecurityError'
+            ? 'Browser refused lock despite standalone mode. Some Chrome versions require explicit fullscreen; try closing and reopening the Capital.'
+            : (name === 'NotSupportedError'
+                ? 'This device or Chrome version does not support portrait orientation lock.'
+                : 'Browser refused lock: ' + msg))
+        : 'Install the Capital as an app (Chrome menu -> Install app) so orientation lock can apply. Currently viewing in a browser tab.';
+      CC._orientationLockStatus = { ok: false, reason: msg || name, hint: hint };
+      if (opts.notify) CC.toast('Lock failed: ' + hint);
+    });
   } else {
     if (typeof screen.orientation.unlock === 'function') {
       try {
