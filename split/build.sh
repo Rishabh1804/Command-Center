@@ -8,13 +8,21 @@ SPLIT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$SPLIT_DIR/.."
 OUTPUT="$SPLIT_DIR/command-center.html"
 
+# Build date injected from the shell's local date at build time. The source
+# constant (CC.BUILT = 'YYYY-MM-DD') in data.js is a placeholder; the stream
+# replacement overwrites it in the output without touching the source file.
+# Canon-0023 holds: builds on the same day remain byte-identical; the date is
+# a legitimate input that changes across days. Canon-0012 (timezone-safe)
+# honored: no string-to-Date parsing, only ISO emission.
+BUILD_DATE="$(date +%Y-%m-%d)"
+
 {
 cat "$SPLIT_DIR/template.html"
 echo '<style>'
 cat "$SPLIT_DIR/styles.css"
 echo '</style>'
 echo '<script>'
-cat "$SPLIT_DIR/data.js"
+sed "s|CC\.BUILT = '[^']*';|CC.BUILT = '${BUILD_DATE}';|" "$SPLIT_DIR/data.js"
 echo ''
 cat "$SPLIT_DIR/core.js"
 echo ''
