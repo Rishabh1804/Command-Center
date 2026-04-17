@@ -131,6 +131,23 @@ async function main() {
   const orientButtons = await page.$$('[data-action="setOrientation"]');
   assert(orientButtons.length === 0, 'No orientation setting (feature deferred)');
 
+  // Text-size scale: Small=14, Medium=17, Large=21 after 17 Apr 2026 walk.
+  console.log('\n=== Text-size scale ===');
+  const sizeChecks = [
+    { size: 'low',  label: 'Small',  expected: '14px' },
+    { size: 'med',  label: 'Medium', expected: '17px' },
+    { size: 'high', label: 'Large',  expected: '21px' },
+  ];
+  for (const c of sizeChecks) {
+    await page.click('[data-action="setTextSize"][data-size="' + c.size + '"]');
+    await page.waitForTimeout(40);
+    const applied = await page.evaluate(() =>
+      document.documentElement.style.getPropertyValue('--fs-base').trim()
+    );
+    assert(applied === c.expected,
+      'TextSize ' + c.label + ' (' + c.size + ') sets --fs-base to ' + c.expected + ' (got "' + applied + '")');
+  }
+
   console.log('\n=== Runtime errors ===');
   assert(pageErrors.length === 0, 'No uncaught page errors (' + pageErrors.length + ')');
   if (pageErrors.length) pageErrors.forEach(e => console.log('    > ' + e));

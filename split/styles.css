@@ -6,7 +6,12 @@
 /* --- Design tokens --- */
 :root {
   --sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;--sp-16:16px;--sp-20:20px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
-  --fs-base:14px;
+  /* Text-size scale (shifted up 17 Apr 2026 after on-device walk).
+     Settings labels map: Small=14, Medium=17, Large=21. Default baseline is
+     Medium — first-time users get the comfortable middle, not the floor.
+     The --fs-2xs and --fs-xs clamps (max() floors) continue to protect
+     legibility at the Small setting; they're no-op at Medium and Large. */
+  --fs-base:17px;
   --fs-2xs:max(11px, calc(var(--fs-base) - 4px));
   --fs-xs:max(12px, calc(var(--fs-base) - 2px));
   --fs-sm:var(--fs-base);

@@ -18,7 +18,7 @@
   var t = localStorage.getItem('cc-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
   var s = localStorage.getItem('cc-textSize');
-  var bases = { low: '12px', med: '14px', high: '17px' };
+  var bases = { low: '14px', med: '17px', high: '21px' };
   if (s && bases[s]) document.documentElement.style.setProperty('--fs-base', bases[s]);
 })();
 </script>
@@ -82,7 +82,12 @@
 /* --- Design tokens --- */
 :root {
   --sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;--sp-16:16px;--sp-20:20px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
-  --fs-base:14px;
+  /* Text-size scale (shifted up 17 Apr 2026 after on-device walk).
+     Settings labels map: Small=14, Medium=17, Large=21. Default baseline is
+     Medium — first-time users get the comfortable middle, not the floor.
+     The --fs-2xs and --fs-xs clamps (max() floors) continue to protect
+     legibility at the Small setting; they're no-op at Medium and Large. */
+  --fs-base:17px;
   --fs-2xs:max(11px, calc(var(--fs-base) - 4px));
   --fs-xs:max(12px, calc(var(--fs-base) - 2px));
   --fs-sm:var(--fs-base);
@@ -1622,8 +1627,12 @@ CC.toggleTheme = function() {
 };
 
 // --- Text size ---
+// Scale shifted one step up after the on-device walk of 17 Apr 2026 found
+// the previous Small (12px) to be cosmetic rather than usable. New floor is
+// 14px; new Medium is 17px (was Large); new Large is 21px (new tier). The
+// Settings label-to-pixel map: Small=14, Medium=17, Large=21.
 CC.setTextSize = function(size) {
-  const bases = { low: '12px', med: '14px', high: '17px' };
+  const bases = { low: '14px', med: '17px', high: '21px' };
   if (!bases[size]) return;
   document.documentElement.style.setProperty('--fs-base', bases[size]);
   try { localStorage.setItem('cc-textSize', size); } catch (e) {}

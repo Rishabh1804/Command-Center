@@ -193,8 +193,12 @@ CC.toggleTheme = function() {
 };
 
 // --- Text size ---
+// Scale shifted one step up after the on-device walk of 17 Apr 2026 found
+// the previous Small (12px) to be cosmetic rather than usable. New floor is
+// 14px; new Medium is 17px (was Large); new Large is 21px (new tier). The
+// Settings label-to-pixel map: Small=14, Medium=17, Large=21.
 CC.setTextSize = function(size) {
-  const bases = { low: '12px', med: '14px', high: '17px' };
+  const bases = { low: '14px', med: '17px', high: '21px' };
   if (!bases[size]) return;
   document.documentElement.style.setProperty('--fs-base', bases[size]);
   try { localStorage.setItem('cc-textSize', size); } catch (e) {}

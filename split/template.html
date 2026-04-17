@@ -18,7 +18,7 @@
   var t = localStorage.getItem('cc-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
   var s = localStorage.getItem('cc-textSize');
-  var bases = { low: '12px', med: '14px', high: '17px' };
+  var bases = { low: '14px', med: '17px', high: '21px' };
   if (s && bases[s]) document.documentElement.style.setProperty('--fs-base', bases[s]);
 })();
 </script>
