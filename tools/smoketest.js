@@ -106,6 +106,15 @@ async function main() {
     if (!titleEl) continue;
     const title = await titleEl.textContent();
     assert(!!title && title.trim().length > 0, 'route ' + route + ' title is non-empty');
+    // No horizontal overflow — documentElement.scrollWidth must not exceed
+    // innerWidth at the 390px phone viewport. Catches the Temple book-row
+    // class of bug where long state pills push cards past the viewport.
+    const overflow = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollWidth,
+      inner: window.innerWidth,
+    }));
+    assert(overflow.scroll <= overflow.inner,
+      'route ' + route + ' no horizontal overflow (scrollWidth=' + overflow.scroll + ', innerWidth=' + overflow.inner + ')');
   }
 
   console.log('\n=== Scriptorium invariants ===');
@@ -147,6 +156,20 @@ async function main() {
     assert(applied === c.expected,
       'TextSize ' + c.label + ' (' + c.size + ') sets --fs-base to ' + c.expected + ' (got "' + applied + '")');
   }
+
+  // Overflow must hold at Large size too — pill text widest at 21px base.
+  // Temple carries the long state labels; that's the worst case.
+  console.log('\n=== Overflow at Large size (Temple) ===');
+  await page.click('[data-action="closeOverlay"]');
+  await page.waitForTimeout(40);
+  await page.evaluate(() => { window.location.hash = '#/temple'; });
+  await page.waitForTimeout(80);
+  const templeOverflow = await page.evaluate(() => ({
+    scroll: document.documentElement.scrollWidth,
+    inner: window.innerWidth,
+  }));
+  assert(templeOverflow.scroll <= templeOverflow.inner,
+    'Temple no horizontal overflow at Large (scrollWidth=' + templeOverflow.scroll + ', innerWidth=' + templeOverflow.inner + ')');
 
   console.log('\n=== Runtime errors ===');
   assert(pageErrors.length === 0, 'No uncaught page errors (' + pageErrors.length + ')');

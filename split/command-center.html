@@ -879,10 +879,32 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   padding:var(--sp-2) var(--sp-8);border-radius:var(--r-full);
   border:1px solid var(--border);color:var(--text-tertiary);
   white-space:nowrap;
+  justify-self:end;
 }
 .cc-book-state[data-state="ratified"]{color:var(--success);border-color:var(--success)}
 .cc-book-state[data-state="partial"]{color:var(--accent);border-color:var(--accent-dim)}
 .cc-book-state[data-state="drafting"]{color:var(--warning);border-color:var(--warning)}
+
+/* Narrow viewport: stack the book row so long state labels (e.g. Book IV's
+   "EIGHT EDICTS RATIFIED; BOOK PENDING") don't push the card past the
+   viewport edge. Numeral + title share the top row; pill drops to its own
+   row with full horizontal breathing room. */
+@media (max-width: 560px){
+  .cc-book-row{
+    grid-template-columns:72px 1fr;
+    grid-template-areas:"numeral title" "pill pill";
+    row-gap:var(--sp-6);
+    align-items:baseline;
+  }
+  .cc-book-numeral{grid-area:numeral}
+  .cc-book-title{grid-area:title}
+  .cc-book-state{
+    grid-area:pill;
+    justify-self:start;
+    white-space:normal;
+    border-radius:var(--r-sm);
+  }
+}
 
 /* Four Pillars — Temple */
 .cc-pillar-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--sp-8)}
@@ -1079,7 +1101,7 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   .cc-hearth-cards{gap:var(--sp-8)}
   .cc-hearth-card{padding:var(--sp-12)}
 
-  .cc-book-row{grid-template-columns:64px 1fr auto;gap:var(--sp-8);padding:var(--sp-8) var(--sp-2)}
+  .cc-book-row{grid-template-columns:56px 1fr;gap:var(--sp-8);padding:var(--sp-8) var(--sp-2)}
   .cc-book-numeral{font-size:var(--fs-2xs)}
   .cc-book-state{padding:1px var(--sp-6)}
 
