@@ -378,6 +378,23 @@ input,textarea,select{font:inherit;color:inherit}
 .cc-resident-status[data-status="awaiting-ratification"]{color:var(--warning)}
 .cc-resident-status[data-status="seated"]{color:var(--success)}
 
+/* --- Ratification badge (profile_version + edit_round + edit_date) --- */
+.cc-resident-ratification{
+  display:inline-block;
+  margin-top:var(--sp-6);
+  margin-right:var(--sp-6);
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-sm);
+  border-left:2px solid var(--border);
+  background:var(--bg-elevated);
+  font-size:var(--fs-2xs);
+  letter-spacing:0.03em;
+  color:var(--text-tertiary);
+}
+.cc-ratification-ratified{color:var(--success);border-left-color:var(--success)}
+.cc-ratification-draft{color:var(--warning);border-left-color:var(--warning)}
+.cc-ratification-pending{color:var(--text-tertiary);border-left-color:var(--border)}
+
 /* --- Gates --- */
 .cc-gates-list{
   display:grid;
@@ -1055,6 +1072,43 @@ CC.renderRoom = function(room) {
 CC.roomRenderers = {};
 
 // --- Shared renderers ---
+
+// Timezone-safe short date formatting (canon-0012). Parses YYYY-MM-DD strings
+// directly; never constructs a Date from a date-only string.
+CC.formatDateShort = function(dateStr) {
+  if (!dateStr) return '';
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr));
+  if (!m) return String(dateStr);
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var idx = parseInt(m[2], 10) - 1;
+  if (idx < 0 || idx > 11) return dateStr;
+  return String(parseInt(m[3], 10)) + ' ' + months[idx] + ' ' + m[1];
+};
+
+// Ratification badge — surfaces profile_version and sovereign_edited state
+// on companion cards. Three states: ratified (v0.4+), draft (v0.3-draft),
+// pending (no profile fetched from Codex yet).
+CC.renderRatificationBadge = function(rec) {
+  if (!rec || rec._placeholder) {
+    return '<div class="cc-resident-ratification cc-ratification-pending">profile pending</div>';
+  }
+  var meta = rec.meta || {};
+  var version = meta.profile_version || '';
+  if (!version) {
+    return '<div class="cc-resident-ratification cc-ratification-pending">profile pending</div>';
+  }
+  if (version.indexOf('draft') !== -1) {
+    return '<div class="cc-resident-ratification cc-ratification-draft">'
+      + CC.escHtml(version) + ' \u00b7 awaiting ratification</div>';
+  }
+  var edit = meta.sovereign_edited || {};
+  var parts = [CC.escHtml(version)];
+  if (edit.edit_round) parts.push('round ' + CC.escHtml(String(edit.edit_round)));
+  if (edit.edit_date) parts.push(CC.escHtml(CC.formatDateShort(edit.edit_date)));
+  return '<div class="cc-resident-ratification cc-ratification-ratified">'
+    + parts.join(' \u00b7 ') + '</div>';
+};
+
 CC.renderRoomHeader = function(room) {
   return [
     '<header class="cc-room-header">',
@@ -1089,6 +1143,7 @@ CC.renderResidentList = function(roomId) {
       '<div class="cc-resident-name">' + CC.escHtml(name) + '</div>',
       title ? '<div class="cc-resident-title">' + CC.escHtml(title) + '</div>' : '',
       trait ? '<div class="cc-resident-trait">' + CC.escHtml(trait) + '</div>' : '',
+      CC.renderRatificationBadge(rec),
       '<span class="cc-resident-status" data-status="' + CC.escAttr(status) + '">' + CC.escHtml(statusLabel) + '</span>',
       '</article>',
     ].join('');
@@ -1119,6 +1174,7 @@ CC.renderSeatList = function(roomId, labelOverride) {
       title ? '<div class="cc-resident-title">' + CC.escHtml(title) + '</div>' : '',
       trait ? '<div class="cc-resident-trait">' + CC.escHtml(trait) + '</div>' : '',
       seatNote ? '<div class="cc-resident-trait cc-small cc-muted">' + CC.escHtml(seatNote) + '</div>' : '',
+      CC.renderRatificationBadge(rec),
       '<span class="cc-resident-status" data-status="' + CC.escAttr(status) + '">' + CC.escHtml(statusLabel) + '</span>',
       '</article>',
     ].join('');

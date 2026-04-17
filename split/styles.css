@@ -316,6 +316,23 @@ input,textarea,select{font:inherit;color:inherit}
 .cc-resident-status[data-status="awaiting-ratification"]{color:var(--warning)}
 .cc-resident-status[data-status="seated"]{color:var(--success)}
 
+/* --- Ratification badge (profile_version + edit_round + edit_date) --- */
+.cc-resident-ratification{
+  display:inline-block;
+  margin-top:var(--sp-6);
+  margin-right:var(--sp-6);
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-sm);
+  border-left:2px solid var(--border);
+  background:var(--bg-elevated);
+  font-size:var(--fs-2xs);
+  letter-spacing:0.03em;
+  color:var(--text-tertiary);
+}
+.cc-ratification-ratified{color:var(--success);border-left-color:var(--success)}
+.cc-ratification-draft{color:var(--warning);border-left-color:var(--warning)}
+.cc-ratification-pending{color:var(--text-tertiary);border-left-color:var(--border)}
+
 /* --- Gates --- */
 .cc-gates-list{
   display:grid;
