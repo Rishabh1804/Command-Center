@@ -258,6 +258,122 @@ CC.RESIDENCE = {
   'cipher':   { residence_type: 'itinerant', chamber: 'visiting', status: 'active' },
 };
 
+// --- Room icons ---
+// One glyph per room. Consistent visual language: 24x24 viewBox, stroke-based,
+// currentColor, stroke-width 1.8, round caps and joins. Evoke civic function:
+// Senate column, Temple flame, Archives scroll, Scriptorium quill, Treasury
+// scales, etc. Rendered at three sizes: room header (22px), district tile
+// (18px), breadcrumb (14px). Size controlled by the parent's font-size or
+// explicit width/height on the <svg>.
+CC.ICONS = {
+  home:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M4 20 L4 11 A8 8 0 0 1 20 11 L20 20"/>'
+    + '<line x1="3" y1="20" x2="21" y2="20"/>'
+    + '<line x1="12" y1="20" x2="12" y2="13"/>'
+    + '</svg>',
+  senate:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M3 10 L12 4 L21 10"/>'
+    + '<line x1="6" y1="10" x2="6" y2="19"/>'
+    + '<line x1="12" y1="10" x2="12" y2="19"/>'
+    + '<line x1="18" y1="10" x2="18" y2="19"/>'
+    + '<line x1="3" y1="19" x2="21" y2="19"/>'
+    + '</svg>',
+  forum:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">'
+    + '<circle cx="12" cy="5" r="1.7"/>'
+    + '<circle cx="18.5" cy="8.5" r="1.7"/>'
+    + '<circle cx="18.5" cy="15.5" r="1.7"/>'
+    + '<circle cx="12" cy="19" r="1.7"/>'
+    + '<circle cx="5.5" cy="15.5" r="1.7"/>'
+    + '<circle cx="5.5" cy="8.5" r="1.7"/>'
+    + '</svg>',
+  archives:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<rect x="4" y="5" width="16" height="14" rx="1.2"/>'
+    + '<line x1="8" y1="9" x2="16" y2="9"/>'
+    + '<line x1="8" y1="12" x2="16" y2="12"/>'
+    + '<line x1="8" y1="15" x2="13" y2="15"/>'
+    + '</svg>',
+  scriptorium:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M4 20 L18 6"/>'
+    + '<path d="M14 3 L21 3 L21 10"/>'
+    + '<path d="M18 6 L14 10"/>'
+    + '<circle cx="5.5" cy="18.5" r="0.9" fill="currentColor" stroke="none"/>'
+    + '</svg>',
+  temple:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M12 3 C 12 3, 6 9, 6 14 A 6 6 0 0 0 18 14 C 18 9, 12 3, 12 3 Z"/>'
+    + '<path d="M12 10 C 12 10, 9 13, 9 16 A 3 3 0 0 0 15 16 C 15 13, 12 10, 12 10 Z"/>'
+    + '</svg>',
+  treasury:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<line x1="3" y1="7" x2="21" y2="7"/>'
+    + '<line x1="12" y1="7" x2="12" y2="19"/>'
+    + '<path d="M6 7 L3 13 L9 13 Z"/>'
+    + '<path d="M18 7 L15 13 L21 13 Z"/>'
+    + '<line x1="8" y1="19" x2="16" y2="19"/>'
+    + '</svg>',
+  productivity:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<polyline points="4 18 9 13 12 16 20 7"/>'
+    + '<polyline points="15 7 20 7 20 12"/>'
+    + '</svg>',
+  table:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<circle cx="12" cy="12" r="4"/>'
+    + '<line x1="12" y1="3" x2="12" y2="6"/>'
+    + '<line x1="12" y1="18" x2="12" y2="21"/>'
+    + '<line x1="3" y1="12" x2="6" y2="12"/>'
+    + '<line x1="18" y1="12" x2="21" y2="12"/>'
+    + '<line x1="6" y1="6" x2="8" y2="8"/>'
+    + '<line x1="16" y1="16" x2="18" y2="18"/>'
+    + '<line x1="18" y1="6" x2="16" y2="8"/>'
+    + '<line x1="8" y1="16" x2="6" y2="18"/>'
+    + '</svg>',
+  'ministers-orinth':
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<line x1="12" y1="21" x2="12" y2="9"/>'
+    + '<path d="M12 9 L6 5"/>'
+    + '<path d="M12 9 L18 5"/>'
+    + '<path d="M12 14 L6 11"/>'
+    + '<path d="M12 14 L18 11"/>'
+    + '<path d="M12 19 L8 17"/>'
+    + '<path d="M12 19 L16 17"/>'
+    + '</svg>',
+  'ministers-rune':
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<circle cx="12" cy="12" r="8.5"/>'
+    + '<circle cx="12" cy="12" r="5"/>'
+    + '<circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/>'
+    + '</svg>',
+  'ministers-bard':
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M3 12 C 6 7, 9 17, 12 12 S 18 7, 21 12"/>'
+    + '<path d="M3 17 C 6 12, 9 22, 12 17"/>'
+    + '</svg>',
+  visiting:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M6 20 L6 9 A 6 6 0 0 1 18 9 L18 20"/>'
+    + '<line x1="3" y1="20" x2="21" y2="20"/>'
+    + '<circle cx="15" cy="13" r="0.7" fill="currentColor" stroke="none"/>'
+    + '</svg>',
+  plaza:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M12 3 L9 6 L9 19 L15 19 L15 6 Z"/>'
+    + '<line x1="5" y1="19" x2="19" y2="19"/>'
+    + '<line x1="11" y1="10" x2="13" y2="10"/>'
+    + '</svg>',
+  gates:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M3 20 L3 11 A 4.5 4.5 0 0 1 12 11 L12 20"/>'
+    + '<path d="M12 20 L12 11 A 4.5 4.5 0 0 1 21 11 L21 20"/>'
+    + '<line x1="2" y1="20" x2="22" y2="20"/>'
+    + '</svg>',
+};
+
 // --- The Seventeen Immortals (Constitution Appendix C) ---
 // The founding roster of the Order. Used by the Civic Hearth to count undrafted
 // profiles. Names are the canonical companion ids in Codex's companions.json.
@@ -302,6 +418,27 @@ CC.DISTRICTS = [
     note: 'For itinerants and Province-residents summoned to the Capital.',
     rooms: ['visiting'],
   },
+];
+
+// --- Foundation Complete criterion ledger ---
+// Single source of truth for both the Productivity Office (detailed ledger
+// display) and the Monument Plaza (summary + progress bar). ROADMAP Stage 1
+// criteria, updated 17 Apr 2026 after the Sovereign's on-device walks and
+// the Scriptorium + smoketest additions.
+CC.FOUNDATION_CRITERIA = [
+  { id: 'rooms-scaffolded',        state: 'complete', text: '15 rooms scaffolded and reachable' },
+  { id: 'civic-hearth',             state: 'complete', text: 'Capital Overview as Civic Hearth' },
+  { id: 'archives-reads-codex',     state: 'complete', text: 'Archives reads canonical records from Codex' },
+  { id: 'temple-displays',          state: 'complete', text: 'Temple displays the Constitution' },
+  { id: 'gates-link',               state: 'partial',  text: 'Gates link to sister Provinces', note: 'live Province state pending Roads stage' },
+  { id: 'companion-rooms',          state: 'complete', text: 'Every Capital-native companion has a labeled room' },
+  { id: 'pwa-deploys',              state: 'complete', text: 'PWA deploys to GitHub Pages' },
+  { id: 'themes-render',            state: 'complete', text: 'Dark and light themes both render correctly' },
+  { id: 'text-size',                state: 'complete', text: 'Text-size toggle honored across layouts' },
+  { id: 'hard-rules',               state: 'partial',  text: 'Hard Rules 1\u201312 compliance', note: 'per-commit canon sweep and 79-check smoketest; formal Cipher session review pending' },
+  { id: 'build-reproducible',       state: 'complete', text: 'Build reproducible' },
+  { id: 'scriptorium-operational',  state: 'complete', text: 'Scriptorium operational' },
+  { id: 'smoketest-harness',        state: 'complete', text: 'Pre-ship smoketest harness operational' },
 ];
 
 // --- Codex endpoint configuration ---

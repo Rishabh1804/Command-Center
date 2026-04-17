@@ -26,6 +26,8 @@
 </head>
 <body>
 
+<a href="#roomContainer" class="cc-skip-link">Skip to content</a>
+
 <header id="capitalHeader">
   <div class="cc-header-inner">
     <button data-action="goHome" class="cc-app-title-btn" aria-label="Capital Overview">
@@ -240,16 +242,42 @@ input,textarea,select{font:inherit;color:inherit}
 /* Inline SVG icons inherit currentColor */
 .cc-icon{display:block;width:22px;height:22px;color:inherit}
 
+/* Room icons — consistent civic glyph language. Rendered at three sizes:
+   lg (room header), md (district tile and card), sm (breadcrumb). The inner
+   <svg> fills its container; sizing is on the wrapper span. */
+.cc-room-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--room-accent, var(--accent));
+  flex-shrink:0;
+}
+.cc-room-icon svg{display:block;width:100%;height:100%}
+.cc-room-icon-lg{width:32px;height:32px}
+.cc-room-icon-md{width:22px;height:22px}
+.cc-room-icon-sm{width:16px;height:16px}
+
 /* --- Breadcrumb --- */
 .cc-breadcrumb{
   background:var(--bg-primary);
   border-bottom:1px solid var(--border-light);
   padding:var(--sp-8) var(--sp-16);
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:var(--sp-6);
   font-size:var(--fs-xs);
   color:var(--text-secondary);
 }
 .cc-breadcrumb a{color:var(--accent);font-weight:500}
-.cc-breadcrumb-sep{color:var(--text-tertiary);margin:0 var(--sp-8)}
+.cc-breadcrumb-sep{color:var(--text-tertiary)}
+.cc-breadcrumb-room{
+  display:inline-flex;
+  align-items:center;
+  gap:var(--sp-6);
+  color:var(--room-accent, var(--text-primary));
+}
+.cc-breadcrumb-name{color:var(--text-primary)}
 
 /* --- Room container --- */
 .cc-room-container{
@@ -264,10 +292,39 @@ input,textarea,select{font:inherit;color:inherit}
 }
 
 /* --- Room core --- */
-.cc-room{animation:room-enter var(--anim-room) ease-out}
+.cc-room{
+  position:relative;
+  animation:room-enter var(--anim-room) ease-out;
+}
 @keyframes room-enter{
   from{opacity:0;transform:translateY(6px)}
   to{opacity:1;transform:translateY(0)}
+}
+/* Room transition — subtle accent bar that sweeps across the top on entry,
+   briefly signalling which district the Sovereign has crossed into. Bard's
+   "sense of entering a district" delivered without ceremony. Pseudo-element
+   so it imposes no DOM cost; animates opacity and translate only (cheap). */
+.cc-room::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:2px;
+  background:linear-gradient(90deg, transparent 0%, var(--room-accent) 50%, transparent 100%);
+  opacity:0;
+  pointer-events:none;
+  animation:room-accent-sweep 520ms ease-out;
+}
+@keyframes room-accent-sweep{
+  0%{opacity:0;transform:translateX(-30%)}
+  25%{opacity:0.9}
+  100%{opacity:0;transform:translateX(30%)}
+}
+/* Respect users who prefer reduced motion — skip the sweep entirely. */
+@media (prefers-reduced-motion: reduce){
+  .cc-room{animation:none}
+  .cc-room::before{animation:none;display:none}
 }
 .cc-room-header{
   margin-bottom:var(--sp-24);
@@ -282,7 +339,15 @@ input,textarea,select{font:inherit;color:inherit}
   color:var(--accent);
   margin-bottom:var(--sp-8);
 }
-.cc-room-title{font-size:var(--fs-3xl)}
+.cc-room-title{
+  font-size:var(--fs-3xl);
+  display:flex;
+  align-items:center;
+  gap:var(--sp-12);
+  line-height:1.15;
+}
+.cc-room-title-text{display:inline-block}
+body[data-tonal="ceremonial"] .cc-room-title{justify-content:center}
 .cc-room-subtitle{
   font-family:var(--ff-heading);
   font-size:var(--fs-md);
@@ -344,12 +409,17 @@ input,textarea,select{font:inherit;color:inherit}
   box-shadow:var(--card-shadow-lg);
   border-left-color:var(--civic);
 }
+.cc-room-card-header{
+  display:flex;
+  align-items:center;
+  gap:var(--sp-10);
+  margin-bottom:var(--sp-4);
+}
 .cc-room-card-name{
   font-family:var(--ff-heading);
   font-weight:700;
   font-size:var(--fs-md);
   color:var(--text-primary);
-  margin-bottom:var(--sp-4);
 }
 .cc-room-card-function{
   font-size:var(--fs-xs);
@@ -740,6 +810,23 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   border-top:3px solid var(--accent);
   border-radius:var(--r-md);
   padding:var(--sp-16);
+  cursor:pointer;
+  touch-action:manipulation;
+  text-align:left;
+  font:inherit;
+  color:inherit;
+  width:100%;
+  display:block;
+  transition:transform var(--anim-fade), box-shadow var(--anim-fade), border-top-color var(--anim-fade);
+}
+.cc-hearth-card:hover,.cc-hearth-card:active{
+  transform:translateY(-1px);
+  box-shadow:var(--card-shadow-lg);
+  border-top-color:var(--civic);
+}
+.cc-hearth-card:focus-visible{
+  outline:2px solid var(--focus-ring);
+  outline-offset:2px;
 }
 .cc-hearth-card-label{
   font-size:var(--fs-2xs);
@@ -944,8 +1031,8 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   text-align:right;margin:0;
 }
 
-/* Monument stages — Productivity */
-.cc-stages-list{display:flex;flex-direction:column;gap:var(--sp-6)}
+/* Monument stages — Productivity + Plaza */
+.cc-stages-list{display:flex;flex-direction:column;gap:var(--sp-8)}
 .cc-stage{
   display:grid;grid-template-columns:1fr auto;gap:var(--sp-12);align-items:center;
   padding:var(--sp-10) var(--sp-12);
@@ -953,13 +1040,43 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   background:var(--bg-card);
 }
 .cc-stage[data-state="active"]{border-left:3px solid var(--success);background:var(--bg-elevated)}
-.cc-stage[data-state="pending"]{color:var(--text-tertiary);opacity:0.7}
+.cc-stage[data-state="pending"]{color:var(--text-tertiary);opacity:0.85}
+.cc-stage-body{display:flex;flex-direction:column;gap:var(--sp-2);min-width:0}
 .cc-stage-name{font-family:var(--ff-heading);font-weight:600;font-size:var(--fs-sm)}
+.cc-stage-note{font-size:var(--fs-2xs);color:var(--text-tertiary);font-style:italic}
 .cc-stage-state{
+  font-size:var(--fs-2xs);letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--text-tertiary);white-space:nowrap;
+}
+.cc-stage[data-state="active"] .cc-stage-state{color:var(--success);font-weight:600}
+
+/* Monument progress — SVG progress bar on the Plaza.
+   Using SVG rects avoids inline style= on width (canon-0002). Track is the
+   full-width background rect; complete fill is success-green; partial fill
+   is the room accent. Fills are painted in order so partial stacks onto
+   complete's right edge via its x offset set in the markup. */
+.cc-monument-progress{
+  padding:var(--sp-8) 0;
+}
+.cc-monument-progress-head{
+  display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;
+  gap:var(--sp-8);margin-bottom:var(--sp-8);
+}
+.cc-monument-progress-stage{
+  font-family:var(--ff-heading);font-weight:600;font-size:var(--fs-md);
+  color:var(--text-primary);
+}
+.cc-monument-progress-count{
   font-size:var(--fs-2xs);letter-spacing:0.08em;text-transform:uppercase;
   color:var(--text-tertiary);
 }
-.cc-stage[data-state="active"] .cc-stage-state{color:var(--success);font-weight:600}
+.cc-progress-bar{
+  display:block;width:100%;height:8px;
+  overflow:visible;
+}
+.cc-progress-track{fill:var(--bg-elevated)}
+.cc-progress-fill-complete{fill:var(--success)}
+.cc-progress-fill-partial{fill:var(--accent)}
 
 /* Foundation criteria ledger — Productivity */
 .cc-criteria-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--sp-4)}
@@ -1072,6 +1189,44 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
 }
 .cc-hearth-indicator:hover,
 .cc-hearth-indicator:active{background:var(--bg-card)}
+
+/* --- Accessibility --- */
+
+/* Skip-to-content link — first focusable element. Hidden off-screen until
+   focused; then reveals at the top so keyboard users can jump past the
+   sticky header to the room content. */
+.cc-skip-link{
+  position:absolute;
+  top:0;left:0;
+  transform:translateY(-120%);
+  padding:var(--sp-10) var(--sp-16);
+  background:var(--accent);
+  color:var(--bg-primary);
+  font-family:var(--ff-body);
+  font-weight:600;
+  font-size:var(--fs-sm);
+  text-decoration:none;
+  border-radius:0 0 var(--r-sm) 0;
+  z-index:100;
+  transition:transform var(--anim-fade);
+}
+.cc-skip-link:focus{
+  transform:translateY(0);
+  outline:2px solid var(--focus-ring);
+  outline-offset:2px;
+}
+
+/* Focus-visible polish — mouse/touch users don't see focus rings, keyboard
+   users do. Uses the civic focus-ring token. */
+:focus{outline:none}
+a:focus-visible,
+button:focus-visible,
+[data-action]:focus-visible,
+.cc-room-card:focus-visible{
+  outline:2px solid var(--focus-ring);
+  outline-offset:2px;
+  border-radius:var(--r-sm);
+}
 
 /* --- Utility --- */
 .cc-muted{color:var(--text-tertiary)}
@@ -1392,6 +1547,122 @@ CC.RESIDENCE = {
   'cipher':   { residence_type: 'itinerant', chamber: 'visiting', status: 'active' },
 };
 
+// --- Room icons ---
+// One glyph per room. Consistent visual language: 24x24 viewBox, stroke-based,
+// currentColor, stroke-width 1.8, round caps and joins. Evoke civic function:
+// Senate column, Temple flame, Archives scroll, Scriptorium quill, Treasury
+// scales, etc. Rendered at three sizes: room header (22px), district tile
+// (18px), breadcrumb (14px). Size controlled by the parent's font-size or
+// explicit width/height on the <svg>.
+CC.ICONS = {
+  home:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M4 20 L4 11 A8 8 0 0 1 20 11 L20 20"/>'
+    + '<line x1="3" y1="20" x2="21" y2="20"/>'
+    + '<line x1="12" y1="20" x2="12" y2="13"/>'
+    + '</svg>',
+  senate:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M3 10 L12 4 L21 10"/>'
+    + '<line x1="6" y1="10" x2="6" y2="19"/>'
+    + '<line x1="12" y1="10" x2="12" y2="19"/>'
+    + '<line x1="18" y1="10" x2="18" y2="19"/>'
+    + '<line x1="3" y1="19" x2="21" y2="19"/>'
+    + '</svg>',
+  forum:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">'
+    + '<circle cx="12" cy="5" r="1.7"/>'
+    + '<circle cx="18.5" cy="8.5" r="1.7"/>'
+    + '<circle cx="18.5" cy="15.5" r="1.7"/>'
+    + '<circle cx="12" cy="19" r="1.7"/>'
+    + '<circle cx="5.5" cy="15.5" r="1.7"/>'
+    + '<circle cx="5.5" cy="8.5" r="1.7"/>'
+    + '</svg>',
+  archives:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<rect x="4" y="5" width="16" height="14" rx="1.2"/>'
+    + '<line x1="8" y1="9" x2="16" y2="9"/>'
+    + '<line x1="8" y1="12" x2="16" y2="12"/>'
+    + '<line x1="8" y1="15" x2="13" y2="15"/>'
+    + '</svg>',
+  scriptorium:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M4 20 L18 6"/>'
+    + '<path d="M14 3 L21 3 L21 10"/>'
+    + '<path d="M18 6 L14 10"/>'
+    + '<circle cx="5.5" cy="18.5" r="0.9" fill="currentColor" stroke="none"/>'
+    + '</svg>',
+  temple:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M12 3 C 12 3, 6 9, 6 14 A 6 6 0 0 0 18 14 C 18 9, 12 3, 12 3 Z"/>'
+    + '<path d="M12 10 C 12 10, 9 13, 9 16 A 3 3 0 0 0 15 16 C 15 13, 12 10, 12 10 Z"/>'
+    + '</svg>',
+  treasury:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<line x1="3" y1="7" x2="21" y2="7"/>'
+    + '<line x1="12" y1="7" x2="12" y2="19"/>'
+    + '<path d="M6 7 L3 13 L9 13 Z"/>'
+    + '<path d="M18 7 L15 13 L21 13 Z"/>'
+    + '<line x1="8" y1="19" x2="16" y2="19"/>'
+    + '</svg>',
+  productivity:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<polyline points="4 18 9 13 12 16 20 7"/>'
+    + '<polyline points="15 7 20 7 20 12"/>'
+    + '</svg>',
+  table:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<circle cx="12" cy="12" r="4"/>'
+    + '<line x1="12" y1="3" x2="12" y2="6"/>'
+    + '<line x1="12" y1="18" x2="12" y2="21"/>'
+    + '<line x1="3" y1="12" x2="6" y2="12"/>'
+    + '<line x1="18" y1="12" x2="21" y2="12"/>'
+    + '<line x1="6" y1="6" x2="8" y2="8"/>'
+    + '<line x1="16" y1="16" x2="18" y2="18"/>'
+    + '<line x1="18" y1="6" x2="16" y2="8"/>'
+    + '<line x1="8" y1="16" x2="6" y2="18"/>'
+    + '</svg>',
+  'ministers-orinth':
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<line x1="12" y1="21" x2="12" y2="9"/>'
+    + '<path d="M12 9 L6 5"/>'
+    + '<path d="M12 9 L18 5"/>'
+    + '<path d="M12 14 L6 11"/>'
+    + '<path d="M12 14 L18 11"/>'
+    + '<path d="M12 19 L8 17"/>'
+    + '<path d="M12 19 L16 17"/>'
+    + '</svg>',
+  'ministers-rune':
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<circle cx="12" cy="12" r="8.5"/>'
+    + '<circle cx="12" cy="12" r="5"/>'
+    + '<circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/>'
+    + '</svg>',
+  'ministers-bard':
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M3 12 C 6 7, 9 17, 12 12 S 18 7, 21 12"/>'
+    + '<path d="M3 17 C 6 12, 9 22, 12 17"/>'
+    + '</svg>',
+  visiting:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M6 20 L6 9 A 6 6 0 0 1 18 9 L18 20"/>'
+    + '<line x1="3" y1="20" x2="21" y2="20"/>'
+    + '<circle cx="15" cy="13" r="0.7" fill="currentColor" stroke="none"/>'
+    + '</svg>',
+  plaza:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M12 3 L9 6 L9 19 L15 19 L15 6 Z"/>'
+    + '<line x1="5" y1="19" x2="19" y2="19"/>'
+    + '<line x1="11" y1="10" x2="13" y2="10"/>'
+    + '</svg>',
+  gates:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M3 20 L3 11 A 4.5 4.5 0 0 1 12 11 L12 20"/>'
+    + '<path d="M12 20 L12 11 A 4.5 4.5 0 0 1 21 11 L21 20"/>'
+    + '<line x1="2" y1="20" x2="22" y2="20"/>'
+    + '</svg>',
+};
+
 // --- The Seventeen Immortals (Constitution Appendix C) ---
 // The founding roster of the Order. Used by the Civic Hearth to count undrafted
 // profiles. Names are the canonical companion ids in Codex's companions.json.
@@ -1436,6 +1707,27 @@ CC.DISTRICTS = [
     note: 'For itinerants and Province-residents summoned to the Capital.',
     rooms: ['visiting'],
   },
+];
+
+// --- Foundation Complete criterion ledger ---
+// Single source of truth for both the Productivity Office (detailed ledger
+// display) and the Monument Plaza (summary + progress bar). ROADMAP Stage 1
+// criteria, updated 17 Apr 2026 after the Sovereign's on-device walks and
+// the Scriptorium + smoketest additions.
+CC.FOUNDATION_CRITERIA = [
+  { id: 'rooms-scaffolded',        state: 'complete', text: '15 rooms scaffolded and reachable' },
+  { id: 'civic-hearth',             state: 'complete', text: 'Capital Overview as Civic Hearth' },
+  { id: 'archives-reads-codex',     state: 'complete', text: 'Archives reads canonical records from Codex' },
+  { id: 'temple-displays',          state: 'complete', text: 'Temple displays the Constitution' },
+  { id: 'gates-link',               state: 'partial',  text: 'Gates link to sister Provinces', note: 'live Province state pending Roads stage' },
+  { id: 'companion-rooms',          state: 'complete', text: 'Every Capital-native companion has a labeled room' },
+  { id: 'pwa-deploys',              state: 'complete', text: 'PWA deploys to GitHub Pages' },
+  { id: 'themes-render',            state: 'complete', text: 'Dark and light themes both render correctly' },
+  { id: 'text-size',                state: 'complete', text: 'Text-size toggle honored across layouts' },
+  { id: 'hard-rules',               state: 'partial',  text: 'Hard Rules 1\u201312 compliance', note: 'per-commit canon sweep and 79-check smoketest; formal Cipher session review pending' },
+  { id: 'build-reproducible',       state: 'complete', text: 'Build reproducible' },
+  { id: 'scriptorium-operational',  state: 'complete', text: 'Scriptorium operational' },
+  { id: 'smoketest-harness',        state: 'complete', text: 'Pre-ship smoketest harness operational' },
 ];
 
 // --- Codex endpoint configuration ---
@@ -1604,12 +1896,14 @@ CC.renderBreadcrumb = function(room) {
     return;
   }
   bar.hidden = false;
-  // Civic signage: middle-dot separator, "The Capital" as formal address,
-  // tonal chip declaring the room's register and (for rooms with a
-  // ceremonial register) the Consul's implicit modulator context.
+  // Civic signage: room icon + middle-dot separator + "The Capital" as formal
+  // address + room name + tonal chip declaring the register. The icon echoes
+  // the room's header glyph so the breadcrumb feels continuous with arrival.
   const home = '<a href="#/" data-action="nav" data-target="/">The Capital</a>';
   const sep = '<span class="cc-breadcrumb-sep">\u00b7</span>';
-  const name = '<span>' + CC.escHtml(room.name) + '</span>';
+  const icon = CC.renderIcon ? CC.renderIcon(room.id, 'cc-room-icon-sm') : '';
+  const name = '<span class="cc-breadcrumb-room">' + icon
+    + '<span class="cc-breadcrumb-name">' + CC.escHtml(room.name) + '</span></span>';
   let chip = '';
   const tonal = room.tonal_register;
   if (tonal && tonal !== 'neutral') {
@@ -1617,7 +1911,11 @@ CC.renderBreadcrumb = function(room) {
       + '<span class="cc-tonal-chip-dot" aria-hidden="true"></span>'
       + CC.escHtml(tonal) + '</span>';
   }
-  bar.innerHTML = home + sep + name + chip;
+  // aria-current marks the current room span for screen-reader wayfinding.
+  bar.innerHTML = home + sep + name.replace(
+    'class="cc-breadcrumb-room"',
+    'class="cc-breadcrumb-room" aria-current="location"'
+  ) + chip;
 };
 
 // --- Toasts ---
@@ -1850,6 +2148,16 @@ CC.roomRenderers = {};
 
 // --- Shared renderers ---
 
+// Icon rendering helper. Returns the SVG markup for a given room id wrapped
+// in a size-scoped span. The underlying SVG uses currentColor so it inherits
+// from the enclosing context (room header accent, tile text, breadcrumb fg).
+CC.renderIcon = function(roomId, sizeClass) {
+  var svg = (CC.ICONS && CC.ICONS[roomId]) || (CC.ICONS && CC.ICONS.home) || '';
+  if (!svg) return '';
+  var cls = 'cc-room-icon ' + (sizeClass || 'cc-room-icon-md');
+  return '<span class="' + cls + '" aria-hidden="true">' + svg + '</span>';
+};
+
 // Timezone-safe short date formatting (canon-0012). Parses YYYY-MM-DD strings
 // directly; never constructs a Date from a date-only string.
 CC.formatDateShort = function(dateStr) {
@@ -1890,7 +2198,10 @@ CC.renderRoomHeader = function(room) {
   return [
     '<header class="cc-room-header">',
     '<div class="cc-room-eyebrow">' + CC.escHtml(room.eyebrow || '') + '</div>',
-    '<h1 class="cc-room-title">' + CC.escHtml(room.name) + '</h1>',
+    '<h1 class="cc-room-title">',
+    CC.renderIcon(room.id, 'cc-room-icon-lg'),
+    '<span class="cc-room-title-text">' + CC.escHtml(room.name) + '</span>',
+    '</h1>',
     room.subtitle ? '<p class="cc-room-subtitle">' + CC.escHtml(room.subtitle) + '</p>' : '',
     room.description ? '<p class="cc-room-description">' + CC.escHtml(room.description) + '</p>' : '',
     '</header>',
@@ -2050,14 +2361,14 @@ CC.renderHearthHeader = function() {
 CC.renderHearthCards = function() {
   var cards = [];
 
-  // Card 1 — the Capital's most recent outbound decree.
-  // Currently a single known decree; future: read CC.state.decrees (ledger).
+  // Card 1 — the Capital's most recent outbound decree. Tapping the card
+  // navigates to the Senate, where the full decree ledger lives.
   cards.push([
-    '<article class="cc-hearth-card">',
+    '<button class="cc-hearth-card" data-action="navRoom" data-room="senate" aria-label="Latest Decree \u2014 open the Senate">',
     '<div class="cc-hearth-card-label">Latest Decree</div>',
     '<div class="cc-hearth-card-body">Decree 0001 \u2014 Ashara &amp; Petra profiles ratified to v0.4.</div>',
     '<div class="cc-hearth-card-meta">Chronicled 17 Apr 2026 \u00b7 first outbound decree from the Capital</div>',
-    '</article>',
+    '</button>',
   ].join(''));
 
   // Card 2 — most recent canon ratified. When multiple canons share the same
@@ -2091,11 +2402,11 @@ CC.renderHearthCards = function() {
     canonLine = '<em>' + canonLine + '</em>';
   }
   cards.push([
-    '<article class="cc-hearth-card">',
+    '<button class="cc-hearth-card" data-action="navRoom" data-room="archives" aria-label="Latest Canon \u2014 open the Archives">',
     '<div class="cc-hearth-card-label">Latest Canon</div>',
     '<div class="cc-hearth-card-body">' + canonLine + '</div>',
     '<div class="cc-hearth-card-meta">' + canonMeta + '</div>',
-    '</article>',
+    '</button>',
   ].join(''));
 
   // Card 3 — undrafted Gen 0 profiles (honest count, encourages Cabinet).
@@ -2115,11 +2426,11 @@ CC.renderHearthCards = function() {
     ? drafted + ' of ' + total + ' profiles present in Codex'
     : 'Awaiting Ostia fetch';
   cards.push([
-    '<article class="cc-hearth-card">',
+    '<button class="cc-hearth-card" data-action="navRoom" data-room="senate" aria-label="The Order \u2014 open the Senate where the Order convenes">',
     '<div class="cc-hearth-card-label">The Order</div>',
     '<div class="cc-hearth-card-body">' + CC.escHtml(orderLine) + '</div>',
     '<div class="cc-hearth-card-meta">' + CC.escHtml(orderMeta) + '</div>',
-    '</article>',
+    '</button>',
   ].join(''));
 
   return '<div class="cc-hearth-cards">' + cards.join('') + '</div>';
@@ -2136,7 +2447,10 @@ CC.renderRoomTileCard = function(r) {
     : '';
   return [
     '<button class="cc-room-card" data-action="navRoom" data-room="' + CC.escAttr(r.id) + '">',
+    '<div class="cc-room-card-header">',
+    CC.renderIcon(r.id, 'cc-room-icon-md'),
     '<div class="cc-room-card-name">' + CC.escHtml(r.name) + '</div>',
+    '</div>',
     '<div class="cc-room-card-function">' + CC.escHtml(r.subtitle || '') + '</div>',
     residentText ? '<div class="cc-room-card-residents">' + CC.escHtml(residentText) + '</div>' : '',
     '</button>',
@@ -2516,19 +2830,11 @@ CC.roomRenderers['productivity'] = function(room) {
     '</article>',
     '<article class="cc-card">',
     '<div class="cc-card-title">Foundation Complete \u2014 criterion ledger</div>',
-    '<p class="cc-small cc-muted">Honest accounting per ROADMAP Stage 1. No criterion skipped; partials and pendings named explicitly.</p>',
+    '<p class="cc-small cc-muted">Honest accounting per ROADMAP Stage 1. No criterion skipped; partials named explicitly. Single source: CC.FOUNDATION_CRITERIA.</p>',
     '<ul class="cc-criteria-list cc-mt-12">',
-    CC.renderCriterion('14 rooms scaffolded and reachable', 'complete'),
-    CC.renderCriterion('Capital Overview as Civic Hearth', 'complete'),
-    CC.renderCriterion('Archives reads canonical records from Codex', 'complete'),
-    CC.renderCriterion('Temple displays the Constitution', 'complete'),
-    CC.renderCriterion('Gates link to sister Provinces', 'partial', 'live Province state pending Roads stage'),
-    CC.renderCriterion('Every Capital-native companion has a labeled room', 'complete'),
-    CC.renderCriterion('PWA deploys to GitHub Pages', 'complete'),
-    CC.renderCriterion('Dark and light themes both render correctly', 'pending', 'browser verification pending'),
-    CC.renderCriterion('Text-size toggle honored', 'pending', 'browser verification pending'),
-    CC.renderCriterion('Hard Rules 1\u201312 compliance verified by Cipher', 'partial', 'Cipher pass applied per-commit; no formal session review'),
-    CC.renderCriterion('Build reproducible', 'complete'),
+    (CC.FOUNDATION_CRITERIA || []).map(function(c) {
+      return CC.renderCriterion(c.text, c.state, c.note);
+    }).join(''),
     '</ul>',
     '</article>',
     CC.renderResidentList('productivity'),
@@ -2589,26 +2895,83 @@ CC.roomRenderers['visiting'] = function(room) {
 };
 
 // --- Monument Plaza ---
+// Progress bar is SVG (canon-0002 compliant: SVG geometry attributes aren't
+// inline CSS styles). Green fill = complete criteria; amber fill = partial.
+// The remainder is the unfilled track. Numbers drawn from FOUNDATION_CRITERIA.
+CC.renderProgressBar = function(complete, partial, total) {
+  var pctComplete = total ? (complete / total) * 100 : 0;
+  var pctPartial  = total ? (partial  / total) * 100 : 0;
+  var pctCompleteStr = pctComplete.toFixed(2);
+  var pctPartialStr  = pctPartial.toFixed(2);
+  return [
+    '<svg class="cc-progress-bar" viewBox="0 0 100 6" preserveAspectRatio="none"',
+    ' role="progressbar" aria-valuemin="0"',
+    ' aria-valuemax="' + CC.escAttr(String(total)) + '"',
+    ' aria-valuenow="' + CC.escAttr(String(complete)) + '"',
+    ' aria-label="Foundation progress: ' + CC.escAttr(complete + ' of ' + total + ' complete') + '">',
+    '<rect x="0" y="0" width="100" height="6" rx="3" class="cc-progress-track"/>',
+    complete ? '<rect x="0" y="0" width="' + pctCompleteStr + '" height="6" class="cc-progress-fill-complete"/>' : '',
+    partial  ? '<rect x="' + pctCompleteStr + '" y="0" width="' + pctPartialStr + '" height="6" class="cc-progress-fill-partial"/>' : '',
+    '</svg>',
+  ].join('');
+};
+
+CC.MONUMENT_STAGES = [
+  { id: 'foundation',        name: 'Foundation',        state: 'active',   note: 'The Capital is legible and instrumented.' },
+  { id: 'capital-occupancy', name: 'Capital Occupancy', state: 'pending',  note: 'The Senate begins convening; decrees author live.' },
+  { id: 'roads',             name: 'Roads',             state: 'pending',  note: 'Cross-Province live state flows through the Gates.' },
+  { id: 'borders',           name: 'Borders',           state: 'pending',  note: 'Companion voices activate across the Capital.' },
+  { id: 'regions',           name: 'Regions',           state: 'pending',  note: 'The Republic is used daily at full scope.' },
+];
+
 CC.roomRenderers['plaza'] = function(room) {
+  var complete = 0, partial = 0;
+  var total = (CC.FOUNDATION_CRITERIA || []).length;
+  (CC.FOUNDATION_CRITERIA || []).forEach(function(c) {
+    if (c.state === 'complete') complete++;
+    else if (c.state === 'partial') partial++;
+  });
+
+  var stageBlocks = (CC.MONUMENT_STAGES || []).map(function(s) {
+    var stateLabel = s.state === 'active' ? 'In progress'
+      : s.state === 'complete' ? 'Complete'
+      : 'Pending';
+    return [
+      '<div class="cc-stage" data-state="' + CC.escAttr(s.state) + '">',
+      '<div class="cc-stage-body">',
+      '<span class="cc-stage-name">' + CC.escHtml(s.name) + '</span>',
+      s.note ? '<span class="cc-stage-note">' + CC.escHtml(s.note) + '</span>' : '',
+      '</div>',
+      '<span class="cc-stage-state">' + CC.escHtml(stateLabel) + '</span>',
+      '</div>',
+    ].join('');
+  }).join('');
+
   return [
     '<section class="cc-room">',
     CC.renderRoomHeader(room),
     '<article class="cc-card">',
     '<div class="cc-card-title">Command Center \u2014 the current Monument</div>',
-    '<p class="cc-small cc-muted">The Capital is itself a Monument Project. Stage: <strong>Foundation</strong>.</p>',
-    '<div class="cc-mt-16">',
-    '<p class="cc-small"><strong>Foundation</strong> \u2014 in progress. The Capital is legible.</p>',
-    '<p class="cc-small cc-muted">Capital Occupancy \u2014 pending.</p>',
-    '<p class="cc-small cc-muted">Roads \u2014 pending.</p>',
-    '<p class="cc-small cc-muted">Borders \u2014 pending.</p>',
-    '<p class="cc-small cc-muted">Regions \u2014 pending.</p>',
+    '<p class="cc-small cc-muted">The Capital is itself a Monument Project. The Plaza displays its stage and progress.</p>',
+    '<div class="cc-monument-progress cc-mt-16">',
+    '<div class="cc-monument-progress-head">',
+    '<span class="cc-monument-progress-stage">Foundation</span>',
+    '<span class="cc-monument-progress-count">' + complete + ' of ' + total + ' complete'
+      + (partial ? ' \u00b7 ' + partial + ' partial' : '') + '</span>',
+    '</div>',
+    CC.renderProgressBar(complete, partial, total),
+    '<p class="cc-small cc-muted cc-mt-8">See the <a href="#/productivity" data-action="nav" data-target="/productivity">Productivity Office</a> for the full criterion ledger.</p>',
     '</div>',
     '</article>',
     '<article class="cc-card">',
-    '<div class="cc-card-title">Future Monuments</div>',
-    '<p class="cc-small cc-muted">Chip / ATMP manufacturing plant (East Singhbhum) \u2014 charter pending. PCB assembly startup \u2014 charter pending.</p>',
+    '<div class="cc-card-title">Monument stages</div>',
+    '<div class="cc-stages-list cc-mt-12">' + stageBlocks + '</div>',
     '</article>',
-    CC.renderFoundationBanner('Monument progress visualization arrives at Capital Occupancy.'),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Future Monuments</div>',
+    '<p class="cc-small cc-muted">Chip / ATMP manufacturing plant (East Singhbhum) \u2014 charter pending. PCB assembly startup \u2014 charter pending. A Monument Project is declared only by Consul proposal and Sovereign ratification per Book IV Edict VI.</p>',
+    '</article>',
+    CC.renderFoundationBanner('Plaza reads live from the Foundation criterion ledger. When a criterion changes state, the bar re-renders on next load.'),
     '</section>',
   ].join('');
 };

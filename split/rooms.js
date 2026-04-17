@@ -15,6 +15,16 @@ CC.roomRenderers = {};
 
 // --- Shared renderers ---
 
+// Icon rendering helper. Returns the SVG markup for a given room id wrapped
+// in a size-scoped span. The underlying SVG uses currentColor so it inherits
+// from the enclosing context (room header accent, tile text, breadcrumb fg).
+CC.renderIcon = function(roomId, sizeClass) {
+  var svg = (CC.ICONS && CC.ICONS[roomId]) || (CC.ICONS && CC.ICONS.home) || '';
+  if (!svg) return '';
+  var cls = 'cc-room-icon ' + (sizeClass || 'cc-room-icon-md');
+  return '<span class="' + cls + '" aria-hidden="true">' + svg + '</span>';
+};
+
 // Timezone-safe short date formatting (canon-0012). Parses YYYY-MM-DD strings
 // directly; never constructs a Date from a date-only string.
 CC.formatDateShort = function(dateStr) {
@@ -55,7 +65,10 @@ CC.renderRoomHeader = function(room) {
   return [
     '<header class="cc-room-header">',
     '<div class="cc-room-eyebrow">' + CC.escHtml(room.eyebrow || '') + '</div>',
-    '<h1 class="cc-room-title">' + CC.escHtml(room.name) + '</h1>',
+    '<h1 class="cc-room-title">',
+    CC.renderIcon(room.id, 'cc-room-icon-lg'),
+    '<span class="cc-room-title-text">' + CC.escHtml(room.name) + '</span>',
+    '</h1>',
     room.subtitle ? '<p class="cc-room-subtitle">' + CC.escHtml(room.subtitle) + '</p>' : '',
     room.description ? '<p class="cc-room-description">' + CC.escHtml(room.description) + '</p>' : '',
     '</header>',
@@ -215,14 +228,14 @@ CC.renderHearthHeader = function() {
 CC.renderHearthCards = function() {
   var cards = [];
 
-  // Card 1 — the Capital's most recent outbound decree.
-  // Currently a single known decree; future: read CC.state.decrees (ledger).
+  // Card 1 — the Capital's most recent outbound decree. Tapping the card
+  // navigates to the Senate, where the full decree ledger lives.
   cards.push([
-    '<article class="cc-hearth-card">',
+    '<button class="cc-hearth-card" data-action="navRoom" data-room="senate" aria-label="Latest Decree \u2014 open the Senate">',
     '<div class="cc-hearth-card-label">Latest Decree</div>',
     '<div class="cc-hearth-card-body">Decree 0001 \u2014 Ashara &amp; Petra profiles ratified to v0.4.</div>',
     '<div class="cc-hearth-card-meta">Chronicled 17 Apr 2026 \u00b7 first outbound decree from the Capital</div>',
-    '</article>',
+    '</button>',
   ].join(''));
 
   // Card 2 — most recent canon ratified. When multiple canons share the same
@@ -256,11 +269,11 @@ CC.renderHearthCards = function() {
     canonLine = '<em>' + canonLine + '</em>';
   }
   cards.push([
-    '<article class="cc-hearth-card">',
+    '<button class="cc-hearth-card" data-action="navRoom" data-room="archives" aria-label="Latest Canon \u2014 open the Archives">',
     '<div class="cc-hearth-card-label">Latest Canon</div>',
     '<div class="cc-hearth-card-body">' + canonLine + '</div>',
     '<div class="cc-hearth-card-meta">' + canonMeta + '</div>',
-    '</article>',
+    '</button>',
   ].join(''));
 
   // Card 3 — undrafted Gen 0 profiles (honest count, encourages Cabinet).
@@ -280,11 +293,11 @@ CC.renderHearthCards = function() {
     ? drafted + ' of ' + total + ' profiles present in Codex'
     : 'Awaiting Ostia fetch';
   cards.push([
-    '<article class="cc-hearth-card">',
+    '<button class="cc-hearth-card" data-action="navRoom" data-room="senate" aria-label="The Order \u2014 open the Senate where the Order convenes">',
     '<div class="cc-hearth-card-label">The Order</div>',
     '<div class="cc-hearth-card-body">' + CC.escHtml(orderLine) + '</div>',
     '<div class="cc-hearth-card-meta">' + CC.escHtml(orderMeta) + '</div>',
-    '</article>',
+    '</button>',
   ].join(''));
 
   return '<div class="cc-hearth-cards">' + cards.join('') + '</div>';
@@ -301,7 +314,10 @@ CC.renderRoomTileCard = function(r) {
     : '';
   return [
     '<button class="cc-room-card" data-action="navRoom" data-room="' + CC.escAttr(r.id) + '">',
+    '<div class="cc-room-card-header">',
+    CC.renderIcon(r.id, 'cc-room-icon-md'),
     '<div class="cc-room-card-name">' + CC.escHtml(r.name) + '</div>',
+    '</div>',
     '<div class="cc-room-card-function">' + CC.escHtml(r.subtitle || '') + '</div>',
     residentText ? '<div class="cc-room-card-residents">' + CC.escHtml(residentText) + '</div>' : '',
     '</button>',
@@ -681,19 +697,11 @@ CC.roomRenderers['productivity'] = function(room) {
     '</article>',
     '<article class="cc-card">',
     '<div class="cc-card-title">Foundation Complete \u2014 criterion ledger</div>',
-    '<p class="cc-small cc-muted">Honest accounting per ROADMAP Stage 1. No criterion skipped; partials and pendings named explicitly.</p>',
+    '<p class="cc-small cc-muted">Honest accounting per ROADMAP Stage 1. No criterion skipped; partials named explicitly. Single source: CC.FOUNDATION_CRITERIA.</p>',
     '<ul class="cc-criteria-list cc-mt-12">',
-    CC.renderCriterion('14 rooms scaffolded and reachable', 'complete'),
-    CC.renderCriterion('Capital Overview as Civic Hearth', 'complete'),
-    CC.renderCriterion('Archives reads canonical records from Codex', 'complete'),
-    CC.renderCriterion('Temple displays the Constitution', 'complete'),
-    CC.renderCriterion('Gates link to sister Provinces', 'partial', 'live Province state pending Roads stage'),
-    CC.renderCriterion('Every Capital-native companion has a labeled room', 'complete'),
-    CC.renderCriterion('PWA deploys to GitHub Pages', 'complete'),
-    CC.renderCriterion('Dark and light themes both render correctly', 'pending', 'browser verification pending'),
-    CC.renderCriterion('Text-size toggle honored', 'pending', 'browser verification pending'),
-    CC.renderCriterion('Hard Rules 1\u201312 compliance verified by Cipher', 'partial', 'Cipher pass applied per-commit; no formal session review'),
-    CC.renderCriterion('Build reproducible', 'complete'),
+    (CC.FOUNDATION_CRITERIA || []).map(function(c) {
+      return CC.renderCriterion(c.text, c.state, c.note);
+    }).join(''),
     '</ul>',
     '</article>',
     CC.renderResidentList('productivity'),
@@ -754,26 +762,83 @@ CC.roomRenderers['visiting'] = function(room) {
 };
 
 // --- Monument Plaza ---
+// Progress bar is SVG (canon-0002 compliant: SVG geometry attributes aren't
+// inline CSS styles). Green fill = complete criteria; amber fill = partial.
+// The remainder is the unfilled track. Numbers drawn from FOUNDATION_CRITERIA.
+CC.renderProgressBar = function(complete, partial, total) {
+  var pctComplete = total ? (complete / total) * 100 : 0;
+  var pctPartial  = total ? (partial  / total) * 100 : 0;
+  var pctCompleteStr = pctComplete.toFixed(2);
+  var pctPartialStr  = pctPartial.toFixed(2);
+  return [
+    '<svg class="cc-progress-bar" viewBox="0 0 100 6" preserveAspectRatio="none"',
+    ' role="progressbar" aria-valuemin="0"',
+    ' aria-valuemax="' + CC.escAttr(String(total)) + '"',
+    ' aria-valuenow="' + CC.escAttr(String(complete)) + '"',
+    ' aria-label="Foundation progress: ' + CC.escAttr(complete + ' of ' + total + ' complete') + '">',
+    '<rect x="0" y="0" width="100" height="6" rx="3" class="cc-progress-track"/>',
+    complete ? '<rect x="0" y="0" width="' + pctCompleteStr + '" height="6" class="cc-progress-fill-complete"/>' : '',
+    partial  ? '<rect x="' + pctCompleteStr + '" y="0" width="' + pctPartialStr + '" height="6" class="cc-progress-fill-partial"/>' : '',
+    '</svg>',
+  ].join('');
+};
+
+CC.MONUMENT_STAGES = [
+  { id: 'foundation',        name: 'Foundation',        state: 'active',   note: 'The Capital is legible and instrumented.' },
+  { id: 'capital-occupancy', name: 'Capital Occupancy', state: 'pending',  note: 'The Senate begins convening; decrees author live.' },
+  { id: 'roads',             name: 'Roads',             state: 'pending',  note: 'Cross-Province live state flows through the Gates.' },
+  { id: 'borders',           name: 'Borders',           state: 'pending',  note: 'Companion voices activate across the Capital.' },
+  { id: 'regions',           name: 'Regions',           state: 'pending',  note: 'The Republic is used daily at full scope.' },
+];
+
 CC.roomRenderers['plaza'] = function(room) {
+  var complete = 0, partial = 0;
+  var total = (CC.FOUNDATION_CRITERIA || []).length;
+  (CC.FOUNDATION_CRITERIA || []).forEach(function(c) {
+    if (c.state === 'complete') complete++;
+    else if (c.state === 'partial') partial++;
+  });
+
+  var stageBlocks = (CC.MONUMENT_STAGES || []).map(function(s) {
+    var stateLabel = s.state === 'active' ? 'In progress'
+      : s.state === 'complete' ? 'Complete'
+      : 'Pending';
+    return [
+      '<div class="cc-stage" data-state="' + CC.escAttr(s.state) + '">',
+      '<div class="cc-stage-body">',
+      '<span class="cc-stage-name">' + CC.escHtml(s.name) + '</span>',
+      s.note ? '<span class="cc-stage-note">' + CC.escHtml(s.note) + '</span>' : '',
+      '</div>',
+      '<span class="cc-stage-state">' + CC.escHtml(stateLabel) + '</span>',
+      '</div>',
+    ].join('');
+  }).join('');
+
   return [
     '<section class="cc-room">',
     CC.renderRoomHeader(room),
     '<article class="cc-card">',
     '<div class="cc-card-title">Command Center \u2014 the current Monument</div>',
-    '<p class="cc-small cc-muted">The Capital is itself a Monument Project. Stage: <strong>Foundation</strong>.</p>',
-    '<div class="cc-mt-16">',
-    '<p class="cc-small"><strong>Foundation</strong> \u2014 in progress. The Capital is legible.</p>',
-    '<p class="cc-small cc-muted">Capital Occupancy \u2014 pending.</p>',
-    '<p class="cc-small cc-muted">Roads \u2014 pending.</p>',
-    '<p class="cc-small cc-muted">Borders \u2014 pending.</p>',
-    '<p class="cc-small cc-muted">Regions \u2014 pending.</p>',
+    '<p class="cc-small cc-muted">The Capital is itself a Monument Project. The Plaza displays its stage and progress.</p>',
+    '<div class="cc-monument-progress cc-mt-16">',
+    '<div class="cc-monument-progress-head">',
+    '<span class="cc-monument-progress-stage">Foundation</span>',
+    '<span class="cc-monument-progress-count">' + complete + ' of ' + total + ' complete'
+      + (partial ? ' \u00b7 ' + partial + ' partial' : '') + '</span>',
+    '</div>',
+    CC.renderProgressBar(complete, partial, total),
+    '<p class="cc-small cc-muted cc-mt-8">See the <a href="#/productivity" data-action="nav" data-target="/productivity">Productivity Office</a> for the full criterion ledger.</p>',
     '</div>',
     '</article>',
     '<article class="cc-card">',
-    '<div class="cc-card-title">Future Monuments</div>',
-    '<p class="cc-small cc-muted">Chip / ATMP manufacturing plant (East Singhbhum) \u2014 charter pending. PCB assembly startup \u2014 charter pending.</p>',
+    '<div class="cc-card-title">Monument stages</div>',
+    '<div class="cc-stages-list cc-mt-12">' + stageBlocks + '</div>',
     '</article>',
-    CC.renderFoundationBanner('Monument progress visualization arrives at Capital Occupancy.'),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Future Monuments</div>',
+    '<p class="cc-small cc-muted">Chip / ATMP manufacturing plant (East Singhbhum) \u2014 charter pending. PCB assembly startup \u2014 charter pending. A Monument Project is declared only by Consul proposal and Sovereign ratification per Book IV Edict VI.</p>',
+    '</article>',
+    CC.renderFoundationBanner('Plaza reads live from the Foundation criterion ledger. When a criterion changes state, the bar re-renders on next load.'),
     '</section>',
   ].join('');
 };

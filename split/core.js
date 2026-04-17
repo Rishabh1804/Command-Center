@@ -148,12 +148,14 @@ CC.renderBreadcrumb = function(room) {
     return;
   }
   bar.hidden = false;
-  // Civic signage: middle-dot separator, "The Capital" as formal address,
-  // tonal chip declaring the room's register and (for rooms with a
-  // ceremonial register) the Consul's implicit modulator context.
+  // Civic signage: room icon + middle-dot separator + "The Capital" as formal
+  // address + room name + tonal chip declaring the register. The icon echoes
+  // the room's header glyph so the breadcrumb feels continuous with arrival.
   const home = '<a href="#/" data-action="nav" data-target="/">The Capital</a>';
   const sep = '<span class="cc-breadcrumb-sep">\u00b7</span>';
-  const name = '<span>' + CC.escHtml(room.name) + '</span>';
+  const icon = CC.renderIcon ? CC.renderIcon(room.id, 'cc-room-icon-sm') : '';
+  const name = '<span class="cc-breadcrumb-room">' + icon
+    + '<span class="cc-breadcrumb-name">' + CC.escHtml(room.name) + '</span></span>';
   let chip = '';
   const tonal = room.tonal_register;
   if (tonal && tonal !== 'neutral') {
@@ -161,7 +163,11 @@ CC.renderBreadcrumb = function(room) {
       + '<span class="cc-tonal-chip-dot" aria-hidden="true"></span>'
       + CC.escHtml(tonal) + '</span>';
   }
-  bar.innerHTML = home + sep + name + chip;
+  // aria-current marks the current room span for screen-reader wayfinding.
+  bar.innerHTML = home + sep + name.replace(
+    'class="cc-breadcrumb-room"',
+    'class="cc-breadcrumb-room" aria-current="location"'
+  ) + chip;
 };
 
 // --- Toasts ---

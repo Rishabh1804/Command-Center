@@ -115,6 +115,12 @@ async function main() {
     }));
     assert(overflow.scroll <= overflow.inner,
       'route ' + route + ' no horizontal overflow (scrollWidth=' + overflow.scroll + ', innerWidth=' + overflow.inner + ')');
+    // Room icon present on every room except the Hearth. The Hearth uses the
+    // civic date as its own visual anchor in place of a header icon.
+    if (route !== '#/') {
+      const iconEl = await page.$('.cc-room-icon-lg svg');
+      assert(!!iconEl, 'route ' + route + ' renders a room icon');
+    }
   }
 
   console.log('\n=== Scriptorium invariants ===');
@@ -170,6 +176,19 @@ async function main() {
   }));
   assert(templeOverflow.scroll <= templeOverflow.inner,
     'Temple no horizontal overflow at Large (scrollWidth=' + templeOverflow.scroll + ', innerWidth=' + templeOverflow.inner + ')');
+
+  // Accessibility surface checks
+  console.log('\n=== Accessibility ===');
+  const skipLink = await page.$('.cc-skip-link');
+  assert(!!skipLink, 'Skip-to-content link present');
+  await page.evaluate(() => { window.location.hash = '#/plaza'; });
+  await page.waitForTimeout(80);
+  const progressBar = await page.$('[role="progressbar"]');
+  assert(!!progressBar, 'Monument Plaza exposes a progressbar role for AT');
+  await page.evaluate(() => { window.location.hash = '#/senate'; });
+  await page.waitForTimeout(80);
+  const ariaCurrent = await page.$('[aria-current="location"]');
+  assert(!!ariaCurrent, 'Breadcrumb marks current room with aria-current');
 
   console.log('\n=== Runtime errors ===');
   assert(pageErrors.length === 0, 'No uncaught page errors (' + pageErrors.length + ')');
