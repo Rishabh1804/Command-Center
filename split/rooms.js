@@ -176,6 +176,26 @@ CC.renderCivicDateHTML = function() {
 // Warm, quiet, inviting. Presence first, activity second, demands never.
 // A hearth with an inscribed wall.
 
+// Small indicator under the Hearth header when the Scriptorium holds
+// unresolved errors or warnings. Subtle, not alarmist. Tapping navigates to
+// the Scriptorium. Rendered only when something warrants attention.
+CC.renderScriptoriumIndicator = function() {
+  if (!CC.readLog) return '';
+  var entries = CC.readLog();
+  var errs = 0, warns = 0;
+  entries.forEach(function(e) {
+    if (e.level === 'error') errs++;
+    else if (e.level === 'warn') warns++;
+  });
+  if (errs === 0 && warns === 0) return '';
+  var parts = [];
+  if (errs) parts.push(errs + ' error' + (errs === 1 ? '' : 's'));
+  if (warns) parts.push(warns + ' warning' + (warns === 1 ? '' : 's'));
+  var label = parts.join(' \u00b7 ') + ' \u00b7 see the Scriptorium';
+  return '<button class="cc-hearth-indicator" data-action="navRoom" data-room="scriptorium">'
+    + CC.escHtml(label) + '</button>';
+};
+
 CC.renderHearthHeader = function() {
   return [
     '<header class="cc-hearth-header">',
@@ -185,6 +205,7 @@ CC.renderHearthHeader = function() {
     'The Capital is at Foundation. The Senate is scaffolded but does not yet convene. ',
     'The Ministers hold their offices. The Gates are open. The Library is within reach.',
     '</p>',
+    CC.renderScriptoriumIndicator(),
     '</header>',
   ].join('');
 };
@@ -420,6 +441,97 @@ CC.roomRenderers['forum'] = function(room) {
     '<p class="cc-small cc-muted">The Forum is informal. Any companion can be invoked here for pre-deliberation before proposals reach the Senate.</p>',
     '</article>',
     CC.renderFoundationBanner('Invocation pending Borders stage. The Forum stands empty until companion voices arrive.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Scriptorium — the Capital's operational record ---
+// A chronological log of the Capital's own runtime events: errors, warnings,
+// informational notices. Distinct from the Archives (which reads canonical
+// records from Codex via Ostia). The Scriptorium is native: UI-rendered from
+// localStorage, no Ostia fetch.
+CC.renderLogEntry = function(entry, idx) {
+  var level = entry.level || 'info';
+  var ts = entry.ts || '';
+  var msgDisplay = CC.escHtml(entry.message || '(no message)');
+  var contextHtml = '';
+  if (entry.context) {
+    var ctxStr;
+    try { ctxStr = JSON.stringify(entry.context, null, 2); }
+    catch (e) { ctxStr = String(entry.context); }
+    contextHtml = '<pre class="cc-log-context">' + CC.escHtml(ctxStr) + '</pre>';
+  }
+  // Parse ISO timestamp into a local civic-style line without constructing
+  // a Date from ambiguous strings (canon-0012 is about date-only strings;
+  // full ISO timestamps are unambiguous and safe).
+  var tsLabel = ts;
+  try {
+    var d = new Date(ts);
+    if (!isNaN(d.getTime())) {
+      var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+      tsLabel = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds())
+        + ' \u00b7 ' + pad(d.getDate()) + ' ' + (CC.MONTH_NAMES[d.getMonth()] || '') + ' ' + d.getFullYear();
+    }
+  } catch (e) {}
+  return [
+    '<article class="cc-log-entry" data-level="' + CC.escAttr(level) + '">',
+    '<div class="cc-log-entry-head">',
+    '<span class="cc-log-level" data-level="' + CC.escAttr(level) + '">' + CC.escHtml(level) + '</span>',
+    '<span class="cc-log-ts">' + CC.escHtml(tsLabel) + '</span>',
+    '</div>',
+    '<p class="cc-log-message">' + msgDisplay + '</p>',
+    contextHtml,
+    '</article>',
+  ].join('');
+};
+
+CC.roomRenderers['scriptorium'] = function(room) {
+  var entries = CC.readLog();
+  var counts = { error: 0, warn: 0, info: 0 };
+  entries.forEach(function(e) {
+    if (counts[e.level] != null) counts[e.level]++;
+  });
+  var summary = [
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The Scribe\u2019s tally</div>',
+    '<dl class="cc-ledger cc-mt-12">',
+    '<dt class="cc-ledger-label">Total entries</dt><dd class="cc-ledger-value">' + entries.length + ' of ' + CC.LOG_MAX + '</dd>',
+    '<dt class="cc-ledger-label">Errors</dt><dd class="cc-ledger-value">' + counts.error + '</dd>',
+    '<dt class="cc-ledger-label">Warnings</dt><dd class="cc-ledger-value">' + counts.warn + '</dd>',
+    '<dt class="cc-ledger-label">Notices</dt><dd class="cc-ledger-value">' + counts.info + '</dd>',
+    '</dl>',
+    '<div class="cc-log-actions cc-mt-16">',
+    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="copyLog">Copy all</button>',
+    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="clearLog">Clear</button>',
+    '</div>',
+    '</article>',
+  ].join('');
+
+  var listHtml;
+  if (entries.length === 0) {
+    listHtml = [
+      '<article class="cc-card">',
+      '<div class="cc-card-title">Ledger</div>',
+      '<p class="cc-small cc-muted">No entries. The Scribe waits. Operational events will appear here as the Capital runs.</p>',
+      '</article>',
+    ].join('');
+  } else {
+    // Most recent first.
+    var rendered = entries.slice().reverse().map(CC.renderLogEntry).join('');
+    listHtml = [
+      '<article class="cc-card cc-log-list-card">',
+      '<div class="cc-card-title">Ledger \u2014 most recent first</div>',
+      '<div class="cc-log-list cc-mt-12">' + rendered + '</div>',
+      '</article>',
+    ].join('');
+  }
+
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    summary,
+    listHtml,
+    CC.renderFoundationBanner('The Scriptorium is native to the Capital. It holds runtime memory only; canonical chronicling remains with Codex.'),
     '</section>',
   ].join('');
 };

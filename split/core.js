@@ -25,6 +25,84 @@ CC.state = {
   toast_queue: [],
 };
 
+// --- Operational log (the Scriptorium writes to here) -----------------------
+// The Capital's own record of runtime events: errors, warnings, informational
+// notices. Stored as a ring buffer in localStorage so it survives reload but
+// does not grow unbounded. Distinct from Codex's canonical records.
+CC.LOG_KEY = 'cc-log';
+CC.LOG_MAX = 200;
+CC.LOG_LEVELS = ['error', 'warn', 'info'];
+
+CC.log = function(level, message, context) {
+  if (CC.LOG_LEVELS.indexOf(level) === -1) level = 'info';
+  var entry = {
+    ts: new Date().toISOString(),
+    level: level,
+    message: String(message == null ? '' : message),
+    context: context || null,
+  };
+  try {
+    var raw = localStorage.getItem(CC.LOG_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(arr)) arr = [];
+    arr.push(entry);
+    if (arr.length > CC.LOG_MAX) arr = arr.slice(arr.length - CC.LOG_MAX);
+    localStorage.setItem(CC.LOG_KEY, JSON.stringify(arr));
+  } catch (e) {
+    // Storage unavailable or quota exceeded; swallow to prevent logging recursion.
+  }
+  // Best-effort console mirror for real-time debugging.
+  try {
+    if (typeof console !== 'undefined' && typeof console[level] === 'function') {
+      if (context) console[level](message, context);
+      else console[level](message);
+    }
+  } catch (e) {}
+  // If the Scriptorium is the current room, re-render to show the new entry.
+  if (CC.state && CC.state.current_room === 'scriptorium') {
+    var room = CC.ROOMS && CC.ROOMS.find(function(r) { return r.id === 'scriptorium'; });
+    if (room && CC.renderRoom) CC.renderRoom(room);
+  }
+};
+
+CC.readLog = function() {
+  try {
+    var raw = localStorage.getItem(CC.LOG_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+};
+
+CC.clearLog = function() {
+  try { localStorage.removeItem(CC.LOG_KEY); } catch (e) {}
+  if (CC.state && CC.state.current_room === 'scriptorium') {
+    var room = CC.ROOMS && CC.ROOMS.find(function(r) { return r.id === 'scriptorium'; });
+    if (room && CC.renderRoom) CC.renderRoom(room);
+  }
+  if (CC.toast) CC.toast('Scriptorium cleared.');
+};
+
+CC.copyLog = function() {
+  var entries = CC.readLog();
+  var text = entries.map(function(e) {
+    var line = '[' + e.ts + '] [' + e.level.toUpperCase() + '] ' + e.message;
+    if (e.context) {
+      try { line += '\n  context: ' + JSON.stringify(e.context); } catch (x) {}
+    }
+    return line;
+  }).join('\n');
+  if (!text) text = '(Scriptorium is empty.)';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      if (CC.toast) CC.toast('Scriptorium copied to clipboard.');
+    }).catch(function() {
+      if (CC.toast) CC.toast('Copy failed \u2014 clipboard unavailable.');
+    });
+  } else {
+    if (CC.toast) CC.toast('Clipboard API unavailable on this browser.');
+  }
+};
+
 // --- Routing ---
 // Hash-based routing: #/senate, #/forum, #/ministers/orinth, etc.
 CC.parseRoute = function() {
@@ -270,6 +348,12 @@ CC.dispatchAction = function(action, el, e) {
       }
       break;
     }
+    case 'clearLog':
+      CC.clearLog();
+      break;
+    case 'copyLog':
+      CC.copyLog();
+      break;
     case 'navRoom': {
       const rid = el.getAttribute('data-room');
       if (rid) {

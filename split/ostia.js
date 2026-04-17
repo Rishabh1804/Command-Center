@@ -44,13 +44,16 @@ CC.ostia.fetch = function(fileKey) {
   // fileKey: 'companions' | 'canons' | 'journal' | 'lore' | 'constitution'
   const filename = CC.CODEX.files[fileKey];
   if (!filename) {
-    return Promise.reject(new Error('CC.ostia.fetch: unknown fileKey ' + fileKey));
+    var err = new Error('CC.ostia.fetch: unknown fileKey ' + fileKey);
+    if (CC.log) CC.log('error', err.message, { fileKey: fileKey });
+    return Promise.reject(err);
   }
 
   // Check cache first
   const cached = CC.ostia.readCache(fileKey);
   if (cached) {
     CC.state.cache[fileKey] = cached;
+    if (CC.log) CC.log('info', 'Ostia cache hit: ' + fileKey, { file: filename });
     return Promise.resolve(cached);
   }
 
@@ -63,7 +66,22 @@ CC.ostia.fetch = function(fileKey) {
     .then(function(data) {
       CC.state.cache[fileKey] = data;
       CC.ostia.writeCache(fileKey, data);
+      if (CC.log) {
+        var counts = {};
+        if (data && Array.isArray(data.canons)) counts.canons = data.canons.length;
+        if (data && Array.isArray(data.companions)) counts.companions = data.companions.length;
+        if (data && Array.isArray(data.lore)) counts.lore = data.lore.length;
+        CC.log('info', 'Ostia fetched: ' + fileKey, { file: filename, counts: counts });
+      }
       return data;
+    })
+    .catch(function(err) {
+      if (CC.log) CC.log('error', 'Ostia fetch failed: ' + fileKey, {
+        file: filename,
+        url: url,
+        message: err && err.message,
+      });
+      throw err;
     });
 };
 

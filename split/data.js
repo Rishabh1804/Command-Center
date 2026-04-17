@@ -108,6 +108,17 @@ CC.ROOMS = [
     status: 'scaffolded; Codex fetch pending Builder decision',
   },
   {
+    id: 'scriptorium',
+    name: 'The Scriptorium',
+    route: '/scriptorium',
+    eyebrow: 'Operational memory',
+    subtitle: 'The Capital records its own events',
+    description: 'The Scriptorium is where the Capital chronicles itself. Distinct from The Archives (which reads canonical records from Codex), the Scriptorium holds operational memory native to Command Center: runtime errors, Ostia fetch outcomes, storage faults, session events. Scribes record what happens so Builders can see what happened.',
+    tonal_register: 'scholarly',
+    residents: [],
+    status: 'scaffolded; live capture active at Foundation',
+  },
+  {
     id: 'temple',
     name: 'The Temple',
     route: '/temple',
@@ -276,8 +287,8 @@ CC.DISTRICTS = [
   {
     id: 'library',
     label: 'The Library',
-    note: 'The Capital\u2019s reading room into Codex.',
-    rooms: ['archives'],
+    note: 'The Capital\u2019s reading room into Codex and its own operational record.',
+    rooms: ['archives', 'scriptorium'],
   },
   {
     id: 'agora',

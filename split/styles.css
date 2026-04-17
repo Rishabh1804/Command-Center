@@ -881,6 +881,95 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
 .cc-criterion-text{font-size:var(--fs-xs);color:var(--text-primary);line-height:1.4}
 .cc-criterion-note{font-size:var(--fs-2xs);color:var(--text-tertiary);font-style:italic;letter-spacing:0.02em}
 
+/* --- The Scriptorium — operational log rendering --- */
+.cc-log-actions{
+  display:flex;
+  gap:var(--sp-8);
+  flex-wrap:wrap;
+}
+.cc-log-list{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-8);
+}
+.cc-log-entry{
+  background:var(--bg-elevated);
+  border:1px solid var(--border-light);
+  border-left:3px solid var(--border);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:var(--sp-10) var(--sp-12);
+}
+.cc-log-entry[data-level="error"]{border-left-color:var(--error)}
+.cc-log-entry[data-level="warn"]{border-left-color:var(--warning)}
+.cc-log-entry[data-level="info"]{border-left-color:var(--accent)}
+.cc-log-entry-head{
+  display:flex;
+  gap:var(--sp-10);
+  align-items:baseline;
+  flex-wrap:wrap;
+  margin-bottom:var(--sp-6);
+}
+.cc-log-level{
+  font-size:var(--fs-2xs);
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-sm);
+  color:var(--text-tertiary);
+  background:var(--bg-card);
+}
+.cc-log-level[data-level="error"]{color:var(--error)}
+.cc-log-level[data-level="warn"]{color:var(--warning)}
+.cc-log-level[data-level="info"]{color:var(--accent)}
+.cc-log-ts{
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  letter-spacing:0.03em;
+  font-family:var(--ff-body);
+}
+.cc-log-message{
+  margin:0;
+  font-size:var(--fs-xs);
+  color:var(--text-primary);
+  line-height:1.5;
+  word-break:break-word;
+}
+.cc-log-context{
+  margin:var(--sp-8) 0 0;
+  padding:var(--sp-8) var(--sp-10);
+  background:var(--bg-card);
+  border:1px solid var(--border-light);
+  border-radius:var(--r-sm);
+  font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size:var(--fs-2xs);
+  color:var(--text-secondary);
+  white-space:pre-wrap;
+  word-break:break-word;
+  overflow-x:auto;
+}
+
+/* --- Scriptorium indicator on the Hearth --- */
+.cc-hearth-indicator{
+  display:inline-flex;
+  align-items:center;
+  gap:var(--sp-6);
+  margin-top:var(--sp-16);
+  padding:var(--sp-6) var(--sp-12);
+  border:1px solid var(--warning);
+  color:var(--warning);
+  background:var(--bg-elevated);
+  border-radius:var(--r-full);
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+.cc-hearth-indicator:hover,
+.cc-hearth-indicator:active{background:var(--bg-card)}
+
 /* --- Utility --- */
 .cc-muted{color:var(--text-tertiary)}
 .cc-nowrap{white-space:nowrap}

@@ -957,6 +957,95 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
 .cc-criterion-text{font-size:var(--fs-xs);color:var(--text-primary);line-height:1.4}
 .cc-criterion-note{font-size:var(--fs-2xs);color:var(--text-tertiary);font-style:italic;letter-spacing:0.02em}
 
+/* --- The Scriptorium — operational log rendering --- */
+.cc-log-actions{
+  display:flex;
+  gap:var(--sp-8);
+  flex-wrap:wrap;
+}
+.cc-log-list{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-8);
+}
+.cc-log-entry{
+  background:var(--bg-elevated);
+  border:1px solid var(--border-light);
+  border-left:3px solid var(--border);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:var(--sp-10) var(--sp-12);
+}
+.cc-log-entry[data-level="error"]{border-left-color:var(--error)}
+.cc-log-entry[data-level="warn"]{border-left-color:var(--warning)}
+.cc-log-entry[data-level="info"]{border-left-color:var(--accent)}
+.cc-log-entry-head{
+  display:flex;
+  gap:var(--sp-10);
+  align-items:baseline;
+  flex-wrap:wrap;
+  margin-bottom:var(--sp-6);
+}
+.cc-log-level{
+  font-size:var(--fs-2xs);
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-sm);
+  color:var(--text-tertiary);
+  background:var(--bg-card);
+}
+.cc-log-level[data-level="error"]{color:var(--error)}
+.cc-log-level[data-level="warn"]{color:var(--warning)}
+.cc-log-level[data-level="info"]{color:var(--accent)}
+.cc-log-ts{
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  letter-spacing:0.03em;
+  font-family:var(--ff-body);
+}
+.cc-log-message{
+  margin:0;
+  font-size:var(--fs-xs);
+  color:var(--text-primary);
+  line-height:1.5;
+  word-break:break-word;
+}
+.cc-log-context{
+  margin:var(--sp-8) 0 0;
+  padding:var(--sp-8) var(--sp-10);
+  background:var(--bg-card);
+  border:1px solid var(--border-light);
+  border-radius:var(--r-sm);
+  font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size:var(--fs-2xs);
+  color:var(--text-secondary);
+  white-space:pre-wrap;
+  word-break:break-word;
+  overflow-x:auto;
+}
+
+/* --- Scriptorium indicator on the Hearth --- */
+.cc-hearth-indicator{
+  display:inline-flex;
+  align-items:center;
+  gap:var(--sp-6);
+  margin-top:var(--sp-16);
+  padding:var(--sp-6) var(--sp-12);
+  border:1px solid var(--warning);
+  color:var(--warning);
+  background:var(--bg-elevated);
+  border-radius:var(--r-full);
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+.cc-hearth-indicator:hover,
+.cc-hearth-indicator:active{background:var(--bg-card)}
+
 /* --- Utility --- */
 .cc-muted{color:var(--text-tertiary)}
 .cc-nowrap{white-space:nowrap}
@@ -1124,6 +1213,17 @@ CC.ROOMS = [
     tonal_register: 'scholarly',
     residents: [],
     status: 'scaffolded; Codex fetch pending Builder decision',
+  },
+  {
+    id: 'scriptorium',
+    name: 'The Scriptorium',
+    route: '/scriptorium',
+    eyebrow: 'Operational memory',
+    subtitle: 'The Capital records its own events',
+    description: 'The Scriptorium is where the Capital chronicles itself. Distinct from The Archives (which reads canonical records from Codex), the Scriptorium holds operational memory native to Command Center: runtime errors, Ostia fetch outcomes, storage faults, session events. Scribes record what happens so Builders can see what happened.',
+    tonal_register: 'scholarly',
+    residents: [],
+    status: 'scaffolded; live capture active at Foundation',
   },
   {
     id: 'temple',
@@ -1294,8 +1394,8 @@ CC.DISTRICTS = [
   {
     id: 'library',
     label: 'The Library',
-    note: 'The Capital\u2019s reading room into Codex.',
-    rooms: ['archives'],
+    note: 'The Capital\u2019s reading room into Codex and its own operational record.',
+    rooms: ['archives', 'scriptorium'],
   },
   {
     id: 'agora',
@@ -1352,6 +1452,84 @@ CC.state = {
   current_room: null,
   cache: {},    // Codex JSON local cache
   toast_queue: [],
+};
+
+// --- Operational log (the Scriptorium writes to here) -----------------------
+// The Capital's own record of runtime events: errors, warnings, informational
+// notices. Stored as a ring buffer in localStorage so it survives reload but
+// does not grow unbounded. Distinct from Codex's canonical records.
+CC.LOG_KEY = 'cc-log';
+CC.LOG_MAX = 200;
+CC.LOG_LEVELS = ['error', 'warn', 'info'];
+
+CC.log = function(level, message, context) {
+  if (CC.LOG_LEVELS.indexOf(level) === -1) level = 'info';
+  var entry = {
+    ts: new Date().toISOString(),
+    level: level,
+    message: String(message == null ? '' : message),
+    context: context || null,
+  };
+  try {
+    var raw = localStorage.getItem(CC.LOG_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(arr)) arr = [];
+    arr.push(entry);
+    if (arr.length > CC.LOG_MAX) arr = arr.slice(arr.length - CC.LOG_MAX);
+    localStorage.setItem(CC.LOG_KEY, JSON.stringify(arr));
+  } catch (e) {
+    // Storage unavailable or quota exceeded; swallow to prevent logging recursion.
+  }
+  // Best-effort console mirror for real-time debugging.
+  try {
+    if (typeof console !== 'undefined' && typeof console[level] === 'function') {
+      if (context) console[level](message, context);
+      else console[level](message);
+    }
+  } catch (e) {}
+  // If the Scriptorium is the current room, re-render to show the new entry.
+  if (CC.state && CC.state.current_room === 'scriptorium') {
+    var room = CC.ROOMS && CC.ROOMS.find(function(r) { return r.id === 'scriptorium'; });
+    if (room && CC.renderRoom) CC.renderRoom(room);
+  }
+};
+
+CC.readLog = function() {
+  try {
+    var raw = localStorage.getItem(CC.LOG_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+};
+
+CC.clearLog = function() {
+  try { localStorage.removeItem(CC.LOG_KEY); } catch (e) {}
+  if (CC.state && CC.state.current_room === 'scriptorium') {
+    var room = CC.ROOMS && CC.ROOMS.find(function(r) { return r.id === 'scriptorium'; });
+    if (room && CC.renderRoom) CC.renderRoom(room);
+  }
+  if (CC.toast) CC.toast('Scriptorium cleared.');
+};
+
+CC.copyLog = function() {
+  var entries = CC.readLog();
+  var text = entries.map(function(e) {
+    var line = '[' + e.ts + '] [' + e.level.toUpperCase() + '] ' + e.message;
+    if (e.context) {
+      try { line += '\n  context: ' + JSON.stringify(e.context); } catch (x) {}
+    }
+    return line;
+  }).join('\n');
+  if (!text) text = '(Scriptorium is empty.)';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      if (CC.toast) CC.toast('Scriptorium copied to clipboard.');
+    }).catch(function() {
+      if (CC.toast) CC.toast('Copy failed \u2014 clipboard unavailable.');
+    });
+  } else {
+    if (CC.toast) CC.toast('Clipboard API unavailable on this browser.');
+  }
 };
 
 // --- Routing ---
@@ -1599,6 +1777,12 @@ CC.dispatchAction = function(action, el, e) {
       }
       break;
     }
+    case 'clearLog':
+      CC.clearLog();
+      break;
+    case 'copyLog':
+      CC.copyLog();
+      break;
     case 'navRoom': {
       const rid = el.getAttribute('data-room');
       if (rid) {
@@ -1796,6 +1980,26 @@ CC.renderCivicDateHTML = function() {
 // Warm, quiet, inviting. Presence first, activity second, demands never.
 // A hearth with an inscribed wall.
 
+// Small indicator under the Hearth header when the Scriptorium holds
+// unresolved errors or warnings. Subtle, not alarmist. Tapping navigates to
+// the Scriptorium. Rendered only when something warrants attention.
+CC.renderScriptoriumIndicator = function() {
+  if (!CC.readLog) return '';
+  var entries = CC.readLog();
+  var errs = 0, warns = 0;
+  entries.forEach(function(e) {
+    if (e.level === 'error') errs++;
+    else if (e.level === 'warn') warns++;
+  });
+  if (errs === 0 && warns === 0) return '';
+  var parts = [];
+  if (errs) parts.push(errs + ' error' + (errs === 1 ? '' : 's'));
+  if (warns) parts.push(warns + ' warning' + (warns === 1 ? '' : 's'));
+  var label = parts.join(' \u00b7 ') + ' \u00b7 see the Scriptorium';
+  return '<button class="cc-hearth-indicator" data-action="navRoom" data-room="scriptorium">'
+    + CC.escHtml(label) + '</button>';
+};
+
 CC.renderHearthHeader = function() {
   return [
     '<header class="cc-hearth-header">',
@@ -1805,6 +2009,7 @@ CC.renderHearthHeader = function() {
     'The Capital is at Foundation. The Senate is scaffolded but does not yet convene. ',
     'The Ministers hold their offices. The Gates are open. The Library is within reach.',
     '</p>',
+    CC.renderScriptoriumIndicator(),
     '</header>',
   ].join('');
 };
@@ -2040,6 +2245,97 @@ CC.roomRenderers['forum'] = function(room) {
     '<p class="cc-small cc-muted">The Forum is informal. Any companion can be invoked here for pre-deliberation before proposals reach the Senate.</p>',
     '</article>',
     CC.renderFoundationBanner('Invocation pending Borders stage. The Forum stands empty until companion voices arrive.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Scriptorium — the Capital's operational record ---
+// A chronological log of the Capital's own runtime events: errors, warnings,
+// informational notices. Distinct from the Archives (which reads canonical
+// records from Codex via Ostia). The Scriptorium is native: UI-rendered from
+// localStorage, no Ostia fetch.
+CC.renderLogEntry = function(entry, idx) {
+  var level = entry.level || 'info';
+  var ts = entry.ts || '';
+  var msgDisplay = CC.escHtml(entry.message || '(no message)');
+  var contextHtml = '';
+  if (entry.context) {
+    var ctxStr;
+    try { ctxStr = JSON.stringify(entry.context, null, 2); }
+    catch (e) { ctxStr = String(entry.context); }
+    contextHtml = '<pre class="cc-log-context">' + CC.escHtml(ctxStr) + '</pre>';
+  }
+  // Parse ISO timestamp into a local civic-style line without constructing
+  // a Date from ambiguous strings (canon-0012 is about date-only strings;
+  // full ISO timestamps are unambiguous and safe).
+  var tsLabel = ts;
+  try {
+    var d = new Date(ts);
+    if (!isNaN(d.getTime())) {
+      var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+      tsLabel = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds())
+        + ' \u00b7 ' + pad(d.getDate()) + ' ' + (CC.MONTH_NAMES[d.getMonth()] || '') + ' ' + d.getFullYear();
+    }
+  } catch (e) {}
+  return [
+    '<article class="cc-log-entry" data-level="' + CC.escAttr(level) + '">',
+    '<div class="cc-log-entry-head">',
+    '<span class="cc-log-level" data-level="' + CC.escAttr(level) + '">' + CC.escHtml(level) + '</span>',
+    '<span class="cc-log-ts">' + CC.escHtml(tsLabel) + '</span>',
+    '</div>',
+    '<p class="cc-log-message">' + msgDisplay + '</p>',
+    contextHtml,
+    '</article>',
+  ].join('');
+};
+
+CC.roomRenderers['scriptorium'] = function(room) {
+  var entries = CC.readLog();
+  var counts = { error: 0, warn: 0, info: 0 };
+  entries.forEach(function(e) {
+    if (counts[e.level] != null) counts[e.level]++;
+  });
+  var summary = [
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The Scribe\u2019s tally</div>',
+    '<dl class="cc-ledger cc-mt-12">',
+    '<dt class="cc-ledger-label">Total entries</dt><dd class="cc-ledger-value">' + entries.length + ' of ' + CC.LOG_MAX + '</dd>',
+    '<dt class="cc-ledger-label">Errors</dt><dd class="cc-ledger-value">' + counts.error + '</dd>',
+    '<dt class="cc-ledger-label">Warnings</dt><dd class="cc-ledger-value">' + counts.warn + '</dd>',
+    '<dt class="cc-ledger-label">Notices</dt><dd class="cc-ledger-value">' + counts.info + '</dd>',
+    '</dl>',
+    '<div class="cc-log-actions cc-mt-16">',
+    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="copyLog">Copy all</button>',
+    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="clearLog">Clear</button>',
+    '</div>',
+    '</article>',
+  ].join('');
+
+  var listHtml;
+  if (entries.length === 0) {
+    listHtml = [
+      '<article class="cc-card">',
+      '<div class="cc-card-title">Ledger</div>',
+      '<p class="cc-small cc-muted">No entries. The Scribe waits. Operational events will appear here as the Capital runs.</p>',
+      '</article>',
+    ].join('');
+  } else {
+    // Most recent first.
+    var rendered = entries.slice().reverse().map(CC.renderLogEntry).join('');
+    listHtml = [
+      '<article class="cc-card cc-log-list-card">',
+      '<div class="cc-card-title">Ledger \u2014 most recent first</div>',
+      '<div class="cc-log-list cc-mt-12">' + rendered + '</div>',
+      '</article>',
+    ].join('');
+  }
+
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    summary,
+    listHtml,
+    CC.renderFoundationBanner('The Scriptorium is native to the Capital. It holds runtime memory only; canonical chronicling remains with Codex.'),
     '</section>',
   ].join('');
 };
@@ -2368,13 +2664,16 @@ CC.ostia.fetch = function(fileKey) {
   // fileKey: 'companions' | 'canons' | 'journal' | 'lore' | 'constitution'
   const filename = CC.CODEX.files[fileKey];
   if (!filename) {
-    return Promise.reject(new Error('CC.ostia.fetch: unknown fileKey ' + fileKey));
+    var err = new Error('CC.ostia.fetch: unknown fileKey ' + fileKey);
+    if (CC.log) CC.log('error', err.message, { fileKey: fileKey });
+    return Promise.reject(err);
   }
 
   // Check cache first
   const cached = CC.ostia.readCache(fileKey);
   if (cached) {
     CC.state.cache[fileKey] = cached;
+    if (CC.log) CC.log('info', 'Ostia cache hit: ' + fileKey, { file: filename });
     return Promise.resolve(cached);
   }
 
@@ -2387,7 +2686,22 @@ CC.ostia.fetch = function(fileKey) {
     .then(function(data) {
       CC.state.cache[fileKey] = data;
       CC.ostia.writeCache(fileKey, data);
+      if (CC.log) {
+        var counts = {};
+        if (data && Array.isArray(data.canons)) counts.canons = data.canons.length;
+        if (data && Array.isArray(data.companions)) counts.companions = data.companions.length;
+        if (data && Array.isArray(data.lore)) counts.lore = data.lore.length;
+        CC.log('info', 'Ostia fetched: ' + fileKey, { file: filename, counts: counts });
+      }
       return data;
+    })
+    .catch(function(err) {
+      if (CC.log) CC.log('error', 'Ostia fetch failed: ' + fileKey, {
+        file: filename,
+        url: url,
+        message: err && err.message,
+      });
+      throw err;
     });
 };
 
@@ -2490,6 +2804,33 @@ CC.ostia.warmStart = function() {
   'use strict';
 
   function boot() {
+    // Operational log capture — the Scriptorium records these. Registered
+    // before anything else so boot-time errors are also caught.
+    if (CC.log) {
+      window.addEventListener('error', function(ev) {
+        CC.log('error', ev.message || 'Uncaught error', {
+          source: ev.filename,
+          line: ev.lineno,
+          col: ev.colno,
+          stack: ev.error && ev.error.stack,
+        });
+      });
+      window.addEventListener('unhandledrejection', function(ev) {
+        var reason = ev.reason;
+        var msg = 'Unhandled promise rejection';
+        var ctx = {};
+        if (reason instanceof Error) {
+          msg += ': ' + (reason.message || reason.name || '');
+          ctx.stack = reason.stack;
+          ctx.name = reason.name;
+        } else if (reason != null) {
+          try { msg += ': ' + String(reason); } catch (e) {}
+        }
+        CC.log('error', msg, ctx);
+      });
+      CC.log('info', 'Capital booted', { version: CC.VERSION, built: CC.BUILT });
+    }
+
     // Event delegation (Hard Rule 3)
     document.body.addEventListener('click', CC.handleClick, false);
 
