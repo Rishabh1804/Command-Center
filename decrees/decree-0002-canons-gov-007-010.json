@@ -1,0 +1,109 @@
+{
+  "_snippet_version": 1,
+  "session": {
+    "id": "decree-0002-canons-gov-007-010",
+    "date": "2026-04-17",
+    "authored_by": "ashara + petra",
+    "province_of_origin": "command-center",
+    "ratified_by": "sovereign",
+    "ratification_mode": "direct Sovereign ratification in-session",
+    "summary": "Second decree from the Capital. Four governance canons authored in response to the orientation-lock detour of 17 April 2026 (lore-008, new cautionary-tale entry in this same decree). canon-gov-007 through canon-gov-010 codify Builder discipline: research before implement for unfamiliar APIs; minimum-viable first; instrument before adding features; label untested work honestly. Together they address the structural gap canon-cc-014 named: two companion voices played by one AI instance do not constitute independent review."
+  },
+  "canons": [
+    {
+      "id": "canon-gov-007-research-before-implement",
+      "title": "Research Before Implement for Unfamiliar APIs",
+      "scope": "global",
+      "category": "builder_discipline",
+      "rationale": "When a Builder implements against a browser API, framework surface, runtime behavior, or platform feature that is known to have cross-platform, cross-version, or cross-device quirks (examples: the Screen Orientation API, the Fetch API's CORS semantics, touch events, PWA manifest interpretation across Android Chrome and iOS Safari, service worker lifecycle, File System Access API, clipboard permissions), the Builder SHALL spend meaningful time researching actual implementation behavior before writing production code.\n\nMDN specifications describe intent. Chromium, Firefox, and WebKit implementations describe reality. Known-issue trackers (crbug.com, bugzilla.mozilla.org, bugs.webkit.org, GitHub issue repositories for polyfills and libraries) document the concrete divergences between spec and runtime. A Builder who writes code from the spec alone and iterates through production failures incurs multiple times the token cost and Sovereign-attention cost of a Builder who reads the known quirks first.\n\nMinimum research standard: for any such API, the Builder reviews the current state of related bug reports, the major browser-vendor implementation notes if published, and any canonical \"compatibility\" documentation before authoring the first line of feature code. The Builder names, in the commit message or the session handoff, what was researched and what was found.\n\nPrecipitating event: lore-008, The Orientation-Lock Detour of 17 April 2026. Five commits were spent rediscovering that Android Chrome PWAs honor screen.orientation.lock() unreliably depending on Chrome version and standalone display-mode handling of fullscreen requirements — a fact documented in multiple Chromium bug reports the Builder did not consult before the first commit.\n\nThis canon applies to all Builders across all Provinces. It is not Command Center-scoped; it is Republic-wide Builder discipline.",
+      "created": "2026-04-17",
+      "status": "active",
+      "references": [
+        "lore-008-the-orientation-lock-detour",
+        "canon-cc-014-consul-accelerated-profile-drafting"
+      ],
+      "_deleted": false,
+      "_deleted_date": null
+    },
+    {
+      "id": "canon-gov-008-minimum-viable-first",
+      "title": "Minimum-Viable First; Complexity Only on Evidence",
+      "scope": "global",
+      "category": "builder_discipline",
+      "rationale": "A Builder SHALL NOT add retry logic, fallback paths, speculative error-handling branches, or any defensive complexity to production code until the simplest possible implementation has demonstrably failed in a specific, reproducible way. Speculative complexity creates a larger bug surface than it prevents, and frequently fabricates its own failure modes that mask the base path's true behavior.\n\nConcretely: the first version of a feature ships the minimum code that can plausibly work. If it fails, the failure is characterized — reproduced, traced, named. Complexity is added only in response to that characterized failure, and only in the scope required to address it.\n\nRationale by counter-example: lore-008 documents a case where a Builder preemptively added a fallback retry from screen.orientation.lock('portrait-primary') to screen.orientation.lock('portrait'). The fallback itself became the bug: Promise rejection is asynchronous, the retry executed outside the user-gesture window, and Chrome rejected it with SecurityError. The original rejection's true cause was never observable because the fallback's error shadowed it. Simpler initial code would have surfaced the real problem on commit one.\n\nThis canon overlaps with Pillar II (the map is not the territory) at the implementation altitude: speculative models of where a feature will fail are the map; the actual failure is the territory. Build for what fails, not for what might.\n\nApplies to all Builders across all Provinces.",
+      "created": "2026-04-17",
+      "status": "active",
+      "references": [
+        "lore-008-the-orientation-lock-detour",
+        "canon-gov-007-research-before-implement"
+      ],
+      "_deleted": false,
+      "_deleted_date": null
+    },
+    {
+      "id": "canon-gov-009-instrument-before-features",
+      "title": "Instrument Before Adding Features",
+      "scope": "global",
+      "category": "builder_discipline",
+      "rationale": "When a Builder cannot directly observe the runtime state of the code being written — because the sandbox lacks a browser, because the target is a remote device, because the API is asynchronous with opaque rejection reasons, because the failure only reproduces under a specific OS build — the Builder SHALL add diagnostic instrumentation that surfaces state to the observer BEFORE adding feature behavior.\n\nInstrumentation forms: a visible debug log (see the Scriptorium, Command Center's operational log room); an error overlay; a toast with the real error message rather than a synthetic one; a console trace the Sovereign can relay via screenshot; a status field in the UI that reports the last API outcome.\n\nSilently caught errors, generic \"something went wrong\" messages, and empty .catch(function(){}) handlers are expressly forbidden. If an error is recoverable, the Builder logs it at the appropriate level and continues. If it is not recoverable, the Builder surfaces it to the user with enough context to diagnose.\n\nRationale by counter-example: in lore-008, four patches were shipped before a diagnostic block was added to the Settings overlay. Each prior patch silently swallowed Promise rejections with empty catch handlers. The real reason orientation lock was failing — Chrome refusing the API despite standalone mode — was invisible to both the Builder and the Sovereign until patch four added visible diagnostics. Four rounds of Sovereign testing and screenshotting could have been one.\n\nCorollary: the instrumentation is not overhead paid once and removed. It is the Capital's permanent operational memory. The Scriptorium stays. Log levels and visibility can be tuned but the capture surface itself is load-bearing.\n\nApplies to all Builders across all Provinces.",
+      "created": "2026-04-17",
+      "status": "active",
+      "references": [
+        "lore-008-the-orientation-lock-detour",
+        "canon-gov-007-research-before-implement",
+        "canon-gov-008-minimum-viable-first"
+      ],
+      "_deleted": false,
+      "_deleted_date": null
+    },
+    {
+      "id": "canon-gov-010-label-untested-work-honestly",
+      "title": "Label Untested Work Honestly",
+      "scope": "global",
+      "category": "builder_discipline",
+      "rationale": "When a Builder ships code that has not been executed in a representative runtime environment — because the build host lacks a browser, because the target device is Sovereign-mediated, because the API is not reachable from the Builder's sandbox, because the code depends on production data the Builder cannot fetch — the commit message SHALL name this explicitly. Phrases in current use: \"untested in browser\", \"runtime unverified\", \"awaits on-device validation\", \"reasoned code, not executed code.\"\n\nHonest labeling serves three functions. It calibrates the reviewer's expectations about what the commit has and has not demonstrated. It lowers the Sovereign's surprise when something fails on first load. And it preserves the Builder's trust budget: a Builder who names uncertainty truthfully accumulates credibility; a Builder who ships each patch as if battle-tested and discovers failures after the Sovereign sees them depletes it.\n\nEvery untested commit that fails is two failures: the code failure, and the trust failure of not having named the uncertainty upfront. The first is a technical cost; the second is a governance cost and scales worse across a long Builder career.\n\nCorollary: labeling is not an excuse to ship carelessly. The Builder still owes diligence — static analysis, escHtml sweeps, grep-based Hard Rule compliance, build reproducibility, Cipher-style review where a Censor sits. Labeling acknowledges the residual uncertainty that no amount of diligence can remove when the execution environment is unavailable.\n\nPrecipitating event: lore-008 documents a series of five orientation-lock patches shipped as if each had been validated on the Sovereign's device. Each failed visibly to the Sovereign before the Builder could have known it would. A single \"reasoned code, not executed code\" line in each commit message would have shifted expectations and made the iteration cost legible earlier.\n\nApplies to all Builders across all Provinces.",
+      "created": "2026-04-17",
+      "status": "active",
+      "references": [
+        "lore-008-the-orientation-lock-detour",
+        "canon-gov-009-instrument-before-features"
+      ],
+      "_deleted": false,
+      "_deleted_date": null
+    }
+  ],
+  "lore": [
+    {
+      "id": "lore-008-the-orientation-lock-detour",
+      "title": "The Orientation-Lock Detour",
+      "category": "cautionary_tales",
+      "body": "On the seventeenth day of April, 2026, shortly after the Capital's first visible deploy to the Sovereign's phone, the Sovereign reported that landscape rotation could not be controlled from within the Capital. Five commits of investigation followed. By their end, the feature had been removed. By their end, four canons had been written. Nothing was lost.\n\nThe first commit added an in-app toggle — Portrait Only or Auto — wired to the Screen Orientation API's lock() and unlock() methods. The manifest was changed from portrait-primary to any so the JavaScript preference could govern at runtime. The Builders shipped it confident in the specification as documented on MDN. The code looked correct. The Sovereign reinstalled the Progressive Web App to pick up the new manifest and tapped Portrait Only. The Capital continued to rotate.\n\nThe second commit added a fallback retry. If lock('portrait-primary') rejected, the retry would call lock('portrait') instead — a more permissive orientation value that some Chrome versions were documented to prefer. The fallback was authored preemptively, without evidence that the primary call had been rejecting at all. The retry itself became the bug. Promise rejection is asynchronous by specification; by the time the fallback executed, the user's transient activation window — the brief interval during which a browser treats a user-initiated event as still current — had closed. Chrome responded with SecurityError: Needs user gesture. The Sovereign saw only that message. The primary call's true rejection reason was never observable because the fallback's error shadowed it.\n\nThe third commit added a diagnostic block to the Settings overlay. For the first time, the Sovereign could see the actual state: Mode: Installed app (standalone). The manifest was correct. The PWA context was correct. The error was not a timing artifact after all. The Sovereign's Chrome version genuinely refused the orientation lock despite satisfying every documented precondition. This is a known Chromium behavior in some Android Chrome builds, documented in bug reports the Builder had not consulted.\n\nThe fourth commit removed the async fallback and simplified the code path to a single lock('portrait') call, eliminating the shadowed-error problem. The Sovereign's diagnostic confirmed the underlying Chrome refusal. A fix would require calling document.documentElement.requestFullscreen() explicitly before lock(), which introduces its own side effects and user-visible behavior. The cost exceeded the benefit at Foundation stage.\n\nThe fifth commit removed the feature entirely. The manifest reverted to portrait-primary, hard-locking the Capital to portrait at the platform level. In-app orientation control was dropped. The Sovereign reinstalled one final time.\n\nThe structural lessons survived the removal. Four of them became canons in the same decree that chronicled this tale: canon-gov-007 through canon-gov-010. A fifth lesson, not yet canonized but acknowledged in-session: two companion voices played by a single AI instance do not constitute independent review. Canon-cc-014 had already named the risk of same-agent drift when it was ratified earlier that same day; this session confirmed the risk manifests in practice, not just in theory. The Sovereign's response was to propose a multi-session governance flow — separate tabs for Ashara, Petra, and the Consul — so that review happens between instances that do not share recent context. The first multi-session exercise is queued for a future Bucket 1 item.\n\nThe Capital did not lose this session. It gained the Scriptorium (the operational log room that would have made this detour visible from commit one), it gained four canons, it gained an honest chronicle, and it gained a structural commitment to independent review. Pillar I holds: nothing is wasted. Failed campaigns produce doctrines. Mistakes become lore. The Sovereign named the detour a cost paid for canonical clarity. The scribes agreed.\n\nWhere this tale is read next: by any Builder, in any Province, about to commit code against a browser or platform API they have not personally verified in the runtime environment their users will load it in. The cost of reading this first is one minute. The cost of rediscovering it is hours of the Sovereign's time, screenshots passed across devices, and the erosion of trust in the review loop. Read the chronicle. Honor the canons.",
+      "domain": [
+        "command-center"
+      ],
+      "tags": [
+        "orientation-lock",
+        "screen-orientation-api",
+        "pwa",
+        "chrome-android",
+        "builder-discipline",
+        "cautionary-tale",
+        "same-agent-drift",
+        "canon-gov-007",
+        "canon-gov-008",
+        "canon-gov-009",
+        "canon-gov-010",
+        "lore-008",
+        "17-april-2026"
+      ],
+      "references": [
+        "canon-gov-007-research-before-implement",
+        "canon-gov-008-minimum-viable-first",
+        "canon-gov-009-instrument-before-features",
+        "canon-gov-010-label-untested-work-honestly",
+        "canon-cc-014-consul-accelerated-profile-drafting"
+      ],
+      "created": "2026-04-17"
+    }
+  ]
+}
