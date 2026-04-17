@@ -126,6 +126,29 @@ CC.THEME_LABELS = { dark: 'Dark', light: 'Light' };
 CC.TEXT_SIZE_LABELS = { low: 'Small', med: 'Medium', high: 'Large' };
 CC.ORIENTATION_LABELS = { portrait: 'Portrait Only', auto: 'Auto' };
 
+// Small diagnostic block for the Settings overlay — shows whether the last
+// applyOrientation call succeeded, and surfaces an install hint when the
+// Capital is viewed in a browser tab rather than installed as a PWA.
+CC._renderOrientationDiagnostic = function() {
+  var pref = CC.getOrientation();
+  var standalone = CC.isStandalone();
+  var status = CC._orientationLockStatus;
+  var lines = [];
+  lines.push('Mode: ' + (standalone ? 'Installed app (standalone)' : 'Browser tab'));
+  if (!standalone && pref === 'portrait') {
+    lines.push('Lock requires the installed Capital app. Install via your browser menu, then launch from the home screen.');
+  }
+  if (status) {
+    if (!status.ok) {
+      lines.push('Last lock attempt: ' + status.reason + (status.hint ? ' \u2014 ' + status.hint : ''));
+    } else if (pref === 'portrait') {
+      lines.push('Last lock attempt: ' + status.reason);
+    }
+  }
+  if (lines.length === 0) return '';
+  return '<p class="cc-pref-current cc-pref-diagnostic">' + lines.map(CC.escHtml).join('<br>') + '</p>';
+};
+
 // --- Orientation preference ---
 // The manifest declares "any" (app permits all orientations). At runtime the
 // Sovereign's preference governs: "portrait" applies a JS-level Screen
@@ -145,23 +168,91 @@ CC.getOrientation = function() {
 CC.setOrientation = function(pref) {
   if (pref !== 'portrait' && pref !== 'auto') return;
   try { localStorage.setItem('cc-orientation', pref); } catch (e) {}
-  CC.applyOrientation(pref);
+  // User-initiated change: pass notify so a toast confirms success or surfaces
+  // the reason for failure. Boot-time apply stays silent to avoid noise.
+  CC.applyOrientation(pref, { notify: true });
 };
 
-CC.applyOrientation = function(pref) {
-  if (typeof screen === 'undefined' || !screen.orientation) return;
+// Detect PWA standalone mode (as opposed to running in a browser tab).
+// Screen Orientation lock() only works in standalone mode on Android Chrome.
+CC.isStandalone = function() {
+  try {
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+    if (window.navigator && window.navigator.standalone === true) return true;
+  } catch (e) {}
+  return false;
+};
+
+// Tracks the reason applyOrientation last failed (surface in Settings).
+CC._orientationLockStatus = null;
+
+CC.applyOrientation = function(pref, opts) {
+  opts = opts || {};
+  if (typeof screen === 'undefined' || !screen.orientation) {
+    CC._orientationLockStatus = { ok: false, reason: 'Screen Orientation API not available in this browser.' };
+    return;
+  }
   if (pref === 'portrait') {
-    if (typeof screen.orientation.lock === 'function') {
-      try {
-        var p = screen.orientation.lock('portrait-primary');
-        if (p && typeof p.catch === 'function') p.catch(function() {});
-      } catch (e) { /* NotSupportedError outside standalone — silent */ }
+    if (typeof screen.orientation.lock !== 'function') {
+      CC._orientationLockStatus = { ok: false, reason: 'Orientation lock not supported by this browser.' };
+      return;
     }
+    // Try the more specific lock first; if that rejects with NotSupportedError
+    // (some browsers disallow the -primary suffix), fall back to generic 'portrait'.
+    var tryLock = function(spec, isFallback) {
+      var p;
+      try { p = screen.orientation.lock(spec); } catch (e) {
+        CC._orientationLockStatus = { ok: false, reason: 'lock threw: ' + (e && e.message || e) };
+        if (opts.notify) CC.toast('Lock failed: ' + (e.message || e));
+        return;
+      }
+      if (!p || typeof p.then !== 'function') {
+        CC._orientationLockStatus = { ok: true, reason: 'locked (sync) to ' + spec };
+        return;
+      }
+      p.then(function() {
+        CC._orientationLockStatus = { ok: true, reason: 'locked to ' + spec };
+        if (opts.notify) CC.toast('Orientation locked to portrait.');
+      }).catch(function(err) {
+        if (!isFallback && /portrait-primary/i.test(spec)) {
+          tryLock('portrait', true);
+          return;
+        }
+        var hint = CC.isStandalone()
+          ? (err && err.name === 'SecurityError' ? 'Needs user gesture; try toggling again.' : 'Browser refused lock.')
+          : 'Install the Capital as an app (Chrome menu -> Install app) so orientation lock can apply. Currently viewing in a browser tab.';
+        CC._orientationLockStatus = { ok: false, reason: (err && err.message) || String(err), hint: hint };
+        if (opts.notify) CC.toast('Lock failed: ' + hint);
+      });
+    };
+    tryLock('portrait-primary', false);
   } else {
     if (typeof screen.orientation.unlock === 'function') {
-      try { screen.orientation.unlock(); } catch (e) { /* no-op */ }
+      try {
+        screen.orientation.unlock();
+        CC._orientationLockStatus = { ok: true, reason: 'unlocked (auto)' };
+      } catch (e) {
+        CC._orientationLockStatus = { ok: false, reason: 'unlock threw: ' + (e && e.message || e) };
+      }
     }
   }
+};
+
+// If the lock is released by the browser or OS, reapply when the device
+// rotates and the Sovereign's preference is still portrait.
+CC._orientationListenerBound = false;
+CC.bindOrientationListener = function() {
+  if (CC._orientationListenerBound) return;
+  if (typeof screen === 'undefined' || !screen.orientation || typeof screen.orientation.addEventListener !== 'function') return;
+  screen.orientation.addEventListener('change', function() {
+    if (CC.getOrientation() === 'portrait') {
+      var ot = screen.orientation.type || '';
+      if (ot.indexOf('portrait') !== 0) {
+        CC.applyOrientation('portrait');
+      }
+    }
+  });
+  CC._orientationListenerBound = true;
 };
 
 // --- Settings overlay (Foundation — refined; Builders will extend) ---
@@ -207,6 +298,7 @@ CC.openSettings = function() {
       + (currentOrient === 'portrait'
         ? 'The Capital stays portrait regardless of phone auto-rotate.'
         : 'The Capital follows the phone\u2019s auto-rotate setting.') + '</p>',
+    CC._renderOrientationDiagnostic(),
     '</div>',
     '<div class="cc-pref-actions">',
     '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="closeOverlay">Close</button>',
