@@ -127,29 +127,229 @@ CC.renderSeatList = function(roomId, labelOverride) {
   ].join('');
 };
 
-// --- Capital Overview (home) ---
-CC.roomRenderers['home'] = function(room) {
-  const roomCards = CC.ROOMS
-    .filter(function(r) { return r.id !== 'home'; })
-    .map(function(r) {
-      const residents = CC.residentsOfRoom(r.id);
-      const residentText = residents.length
-        ? residents.map(function(id) { return id.charAt(0).toUpperCase() + id.slice(1); }).join(', ')
-        : 'No standing residents';
-      return [
-        '<button class="cc-room-card" data-action="navRoom" data-room="' + CC.escAttr(r.id) + '">',
-        '<div class="cc-room-card-name">' + CC.escHtml(r.name) + '</div>',
-        '<div class="cc-room-card-function">' + CC.escHtml(r.subtitle || '') + '</div>',
-        '<div class="cc-room-card-residents">' + CC.escHtml(residentText) + '</div>',
-        '</button>',
-      ].join('');
+// --- Civic date — spelled-out ordinal form ---
+// "The Seventeenth Day of April, Two Thousand Twenty-Six"
+// Uses local date (the Sovereign's timezone). Canon-0012 compliant: does not
+// attempt cross-timezone normalization; the Capital's calendar is civic.
+CC.ORDINAL_DAYS = [
+  'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh',
+  'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth', 'Thirteenth',
+  'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth', 'Eighteenth',
+  'Nineteenth', 'Twentieth', 'Twenty-First', 'Twenty-Second',
+  'Twenty-Third', 'Twenty-Fourth', 'Twenty-Fifth', 'Twenty-Sixth',
+  'Twenty-Seventh', 'Twenty-Eighth', 'Twenty-Ninth', 'Thirtieth',
+  'Thirty-First',
+];
+CC.MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+CC.YEAR_WORDS = {
+  2026: 'Two Thousand Twenty-Six',
+  2027: 'Two Thousand Twenty-Seven',
+  2028: 'Two Thousand Twenty-Eight',
+  2029: 'Two Thousand Twenty-Nine',
+  2030: 'Two Thousand Thirty',
+};
+CC.formatCivicDate = function(d) {
+  var date = d || new Date();
+  var dayIdx = date.getDate() - 1;
+  var day = CC.ORDINAL_DAYS[dayIdx] || String(date.getDate());
+  var month = CC.MONTH_NAMES[date.getMonth()] || '';
+  var year = CC.YEAR_WORDS[date.getFullYear()] || String(date.getFullYear());
+  return 'The ' + day + ' Day of ' + month + ', ' + year;
+};
+
+// --- Civic Hearth — the Dawn Page of the Capital, per Edict IV ---
+// Warm, quiet, inviting. Presence first, activity second, demands never.
+// A hearth with an inscribed wall.
+
+CC.renderHearthHeader = function() {
+  return [
+    '<header class="cc-hearth-header">',
+    '<div class="cc-hearth-eyebrow">The Capital Stands</div>',
+    '<div class="cc-hearth-date">' + CC.escHtml(CC.formatCivicDate()) + '</div>',
+    '<p class="cc-hearth-stage">',
+    'The Capital is at Foundation. The Senate is scaffolded but does not yet convene. ',
+    'The Ministers hold their offices. The Gates are open. The Library is within reach.',
+    '</p>',
+    '</header>',
+  ].join('');
+};
+
+// Living cards: latest decree, latest canon, undrafted profile count.
+// Each card is presence, not telemetry. Nothing blinks. Nothing demands.
+CC.renderHearthCards = function() {
+  var cards = [];
+
+  // Card 1 — the Capital's most recent outbound decree.
+  // Currently a single known decree; future: read CC.state.decrees (ledger).
+  cards.push([
+    '<article class="cc-hearth-card">',
+    '<div class="cc-hearth-card-label">Latest Decree</div>',
+    '<div class="cc-hearth-card-body">Decree 0001 \u2014 Ashara &amp; Petra profiles ratified to v0.4.</div>',
+    '<div class="cc-hearth-card-meta">Chronicled 17 Apr 2026 \u00b7 first outbound decree from the Capital</div>',
+    '</article>',
+  ].join(''));
+
+  // Card 2 — most recent canon ratified.
+  var canonsData = (CC.state.cache && CC.state.cache.canons) || null;
+  var canonLine = 'Fetching from the Library.';
+  var canonMeta = 'Consulted via Ostia';
+  if (canonsData && Array.isArray(canonsData.canons) && canonsData.canons.length > 0) {
+    // Sort by created descending; fall back to array order.
+    var sorted = canonsData.canons.slice().sort(function(a, b) {
+      var da = a && a.created ? String(a.created) : '';
+      var db = b && b.created ? String(b.created) : '';
+      if (da < db) return 1;
+      if (da > db) return -1;
+      return 0;
+    });
+    var latest = sorted[0] || canonsData.canons[canonsData.canons.length - 1];
+    if (latest) {
+      var title = latest.title || latest.rule || latest.id || '(untitled)';
+      canonLine = CC.escHtml(title);
+      var metaParts = [];
+      if (latest.id) metaParts.push(CC.escHtml(latest.id));
+      if (latest.created) metaParts.push('ratified ' + CC.escHtml(CC.formatDateShort(latest.created)));
+      canonMeta = metaParts.join(' \u00b7 ') || 'consulted via Ostia';
+    }
+  } else {
+    canonLine = '<em>' + canonLine + '</em>';
+  }
+  cards.push([
+    '<article class="cc-hearth-card">',
+    '<div class="cc-hearth-card-label">Latest Canon</div>',
+    '<div class="cc-hearth-card-body">' + canonLine + '</div>',
+    '<div class="cc-hearth-card-meta">' + canonMeta + '</div>',
+    '</article>',
+  ].join(''));
+
+  // Card 3 — undrafted Gen 0 profiles (honest count, encourages Cabinet).
+  var companionsData = (CC.state.cache && CC.state.cache.companions) || null;
+  var drafted = 0;
+  var total = (CC.GEN_ZERO_IDS || []).length;
+  if (companionsData && Array.isArray(companionsData.companions)) {
+    companionsData.companions.forEach(function(c) {
+      if (CC.GEN_ZERO_IDS.indexOf(c.id) !== -1) drafted++;
+    });
+  }
+  var undrafted = total - drafted;
+  var orderLine = undrafted === 0
+    ? 'The Order is fully profiled.'
+    : undrafted + ' of ' + total + ' Gen 0 companions await profile drafting.';
+  var orderMeta = total > 0
+    ? drafted + ' of ' + total + ' profiles present in Codex'
+    : 'Awaiting Ostia fetch';
+  cards.push([
+    '<article class="cc-hearth-card">',
+    '<div class="cc-hearth-card-label">The Order</div>',
+    '<div class="cc-hearth-card-body">' + CC.escHtml(orderLine) + '</div>',
+    '<div class="cc-hearth-card-meta">' + CC.escHtml(orderMeta) + '</div>',
+    '</article>',
+  ].join(''));
+
+  return '<div class="cc-hearth-cards">' + cards.join('') + '</div>';
+};
+
+// City map — rooms as districts. Charter Art. 4: the Capital is a city.
+CC.renderRoomTileCard = function(r) {
+  var residents = CC.residentsOfRoom(r.id);
+  var residentText = residents.length
+    ? residents.map(function(id) { return id.charAt(0).toUpperCase() + id.slice(1); }).join(', ')
+    : 'No standing residents';
+  return [
+    '<button class="cc-room-card" data-action="navRoom" data-room="' + CC.escAttr(r.id) + '">',
+    '<div class="cc-room-card-name">' + CC.escHtml(r.name) + '</div>',
+    '<div class="cc-room-card-function">' + CC.escHtml(r.subtitle || '') + '</div>',
+    '<div class="cc-room-card-residents">' + CC.escHtml(residentText) + '</div>',
+    '</button>',
+  ].join('');
+};
+
+CC.renderCityMap = function() {
+  var roomById = {};
+  CC.ROOMS.forEach(function(r) { roomById[r.id] = r; });
+
+  var districtBlocks = (CC.DISTRICTS || []).map(function(d) {
+    var tiles = (d.rooms || []).map(function(id) {
+      var r = roomById[id];
+      return r ? CC.renderRoomTileCard(r) : '';
     }).join('');
+    return [
+      '<section class="cc-district" data-district="' + CC.escAttr(d.id) + '">',
+      '<div class="cc-district-header">',
+      '<h2 class="cc-district-label">' + CC.escHtml(d.label) + '</h2>',
+      d.note ? '<p class="cc-district-note">' + CC.escHtml(d.note) + '</p>' : '',
+      '</div>',
+      '<div class="cc-district-rooms">' + tiles + '</div>',
+      '</section>',
+    ].join('');
+  }).join('');
+
+  return '<div class="cc-city-map">' + districtBlocks + '</div>';
+};
+
+// Chronicle inscription strip — one line from the Republic's memory.
+// Drawn from canons.json's lore[], filtered to 'chronicles' category.
+// Bard's note #3: the Capital should speak without shouting.
+CC.renderChronicleStrip = function() {
+  var canonsData = (CC.state.cache && CC.state.cache.canons) || null;
+  var inscription = null;
+  var source = null;
+  var sourceDate = null;
+  if (canonsData && Array.isArray(canonsData.lore)) {
+    var chronicles = canonsData.lore.filter(function(l) {
+      return l && l.category === 'chronicles' && !l._deleted && l.title;
+    });
+    if (chronicles.length > 0) {
+      // Pick by (today's date + day-of-year) parity for a stable daily rotation.
+      // Not random; not ticker; one chronicle per day of the Capital's life.
+      var now = new Date();
+      var dayOfYear = Math.floor(
+        (now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24)
+      );
+      var pick = chronicles[dayOfYear % chronicles.length];
+      if (pick) {
+        inscription = pick.title;
+        source = pick.id || '';
+        sourceDate = pick.created || '';
+      }
+    }
+  }
+
+  if (!inscription) {
+    // Graceful Dawn: before the Library responds, the Hearth speaks for itself.
+    inscription = 'The Republic is not a thing, but a relation. These Provinces hold that relation for us.';
+    source = 'The Capital';
+    sourceDate = '';
+  }
+
+  var sourceLine = '';
+  if (source) {
+    var parts = [];
+    parts.push(CC.escHtml(source));
+    if (sourceDate) parts.push(CC.escHtml(CC.formatDateShort(sourceDate)));
+    sourceLine = '<span class="cc-chronicle-source">' + parts.join(' \u00b7 ') + '</span>';
+  }
 
   return [
-    '<section class="cc-room">',
-    CC.renderRoomHeader(room),
-    '<div class="cc-capital-grid">' + roomCards + '</div>',
-    CC.renderFoundationBanner('The Capital is in Foundation stage. Rooms are scaffolded; functions are being built by Ashara and Petra. See ROADMAP.md in the repository for the progression.'),
+    '<aside class="cc-chronicle-strip" aria-label="Chronicle inscription">',
+    '\u201C' + CC.escHtml(inscription) + '\u201D',
+    sourceLine,
+    '</aside>',
+  ].join('');
+};
+
+// --- Capital Overview (home) — the Civic Hearth ---
+CC.roomRenderers['home'] = function(room) {
+  return [
+    '<section class="cc-room cc-hearth">',
+    CC.renderHearthHeader(),
+    CC.renderHearthCards(),
+    CC.renderCityMap(),
+    CC.renderChronicleStrip(),
+    CC.renderFoundationBanner('The Capital is in Foundation stage. The Hearth is set; the rooms are scaffolded; the Senate awaits its first convening. Ashara and Petra hold the Builder seats.'),
     '</section>',
   ].join('');
 };

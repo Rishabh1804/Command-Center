@@ -438,7 +438,7 @@ input,textarea,select{font:inherit;color:inherit}
   margin:0 auto;
 }
 
-/* --- Footer --- */
+/* --- Footer — civic signature --- */
 .cc-footer{
   background:var(--bg-secondary);
   border-top:1px solid var(--border);
@@ -446,15 +446,217 @@ input,textarea,select{font:inherit;color:inherit}
   font-size:var(--fs-2xs);
   color:var(--text-tertiary);
   display:flex;
+  flex-wrap:wrap;
   justify-content:space-between;
-  gap:var(--sp-16);
-  letter-spacing:0.03em;
-  text-align:center;
+  align-items:center;
+  gap:var(--sp-12);
+  letter-spacing:0.04em;
 }
-.cc-footer > span{flex:1}
-.cc-footer-left{text-align:left}
-.cc-footer-center{text-align:center;font-style:italic}
-.cc-footer-right{text-align:right}
+.cc-footer-sig{
+  font-family:var(--ff-heading);
+  font-style:italic;
+  color:var(--text-secondary);
+  font-size:var(--fs-xs);
+  letter-spacing:0.05em;
+}
+.cc-footer-meta{
+  display:inline-flex;
+  flex-wrap:wrap;
+  gap:var(--sp-6);
+  align-items:center;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+.cc-footer-sep{color:var(--border-light);user-select:none}
+.cc-footer-stage{color:var(--room-accent, var(--accent));font-weight:600}
+
+/* --- Tonal registers — the atmospheres of the Capital's districts ---
+   Charter Article 4: the Capital is a city, not a dashboard. Each room has
+   its own tonal register. A register declares an atmosphere via two cascaded
+   tokens: --room-accent (the room's signature color) and --room-rule (its
+   border weight). Further decorations — header weight, eyebrow letter-spacing,
+   card left-rule color — derive from these two. Subtle, cumulative, legible. */
+body{--room-accent:var(--accent);--room-rule:var(--border);--room-eyebrow-letter:0.15em}
+body[data-tonal="formal"]{--room-accent:var(--accent);--room-rule:var(--accent-dim);--room-eyebrow-letter:0.2em}
+body[data-tonal="ceremonial"]{--room-accent:var(--civic);--room-rule:var(--civic);--room-eyebrow-letter:0.25em}
+body[data-tonal="casual"]{--room-accent:var(--accent-light);--room-rule:var(--border-light);--room-eyebrow-letter:0.1em}
+body[data-tonal="scholarly"]{--room-accent:var(--accent);--room-rule:var(--accent-dim);--room-eyebrow-letter:0.18em}
+body[data-tonal="analytical"]{--room-accent:var(--success);--room-rule:var(--border);--room-eyebrow-letter:0.12em}
+body[data-tonal="exploratory"]{--room-accent:var(--accent-light);--room-rule:var(--border-light);--room-eyebrow-letter:0.1em}
+body[data-tonal="civic"]{--room-accent:var(--civic);--room-rule:var(--civic);--room-eyebrow-letter:0.22em}
+body[data-tonal="contemplative"]{--room-accent:var(--accent-dim);--room-rule:var(--border);--room-eyebrow-letter:0.14em}
+body[data-tonal="steady"]{--room-accent:var(--success);--room-rule:var(--border);--room-eyebrow-letter:0.12em}
+body[data-tonal="generative"]{--room-accent:var(--warning);--room-rule:var(--border-light);--room-eyebrow-letter:0.1em}
+body[data-tonal="neutral"]{--room-accent:var(--accent);--room-rule:var(--border);--room-eyebrow-letter:0.15em}
+
+/* Apply the tonal tokens to room chrome */
+body .cc-room-header{border-bottom-color:var(--room-rule)}
+body .cc-room-eyebrow{color:var(--room-accent);letter-spacing:var(--room-eyebrow-letter)}
+body[data-tonal="ceremonial"] .cc-room-title{font-family:var(--ff-heading);text-align:center}
+body[data-tonal="ceremonial"] .cc-room-subtitle{text-align:center}
+body[data-tonal="ceremonial"] .cc-room-description{margin-left:auto;margin-right:auto;text-align:center}
+body[data-tonal="ceremonial"] .cc-room-header{border-bottom-width:2px;padding-bottom:var(--sp-20)}
+body[data-tonal="formal"] .cc-room-header{border-bottom-width:2px}
+body[data-tonal="formal"] .cc-room-title{letter-spacing:0.01em}
+body[data-tonal="casual"] .cc-room-header{border-bottom-style:dashed}
+body[data-tonal="scholarly"] .cc-room-title{font-style:italic}
+body[data-tonal="civic"] .cc-room-title{letter-spacing:0.02em}
+body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
+
+/* Card accents per register — subtle left-rule color shift */
+.cc-card{border-left:3px solid var(--room-accent)}
+
+/* --- Civic breadcrumb with tonal chip --- */
+.cc-tonal-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:var(--sp-4);
+  margin-left:var(--sp-12);
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-full);
+  border:1px solid var(--room-rule);
+  color:var(--room-accent);
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  background:var(--bg-elevated);
+}
+.cc-tonal-chip-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--room-accent);
+  display:inline-block;
+}
+
+/* --- Civic Hearth — the Capital Overview as Dawn Page, per Edict IV ---
+   Warm, quiet, inviting. Presence before telemetry. A hearth with an
+   inscribed wall, not a task-dump. */
+.cc-hearth{padding-top:var(--sp-12)}
+
+.cc-hearth-header{
+  text-align:center;
+  padding:var(--sp-24) var(--sp-16) var(--sp-32);
+  border-bottom:1px solid var(--border);
+  margin-bottom:var(--sp-32);
+}
+.cc-hearth-eyebrow{
+  font-size:var(--fs-2xs);
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:var(--sp-12);
+  font-weight:600;
+}
+.cc-hearth-date{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-2xl);
+  font-weight:400;
+  color:var(--text-primary);
+  line-height:1.2;
+  margin-bottom:var(--sp-8);
+}
+.cc-hearth-stage{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-md);
+  font-style:italic;
+  color:var(--text-secondary);
+  max-width:52ch;
+  margin:0 auto;
+  line-height:1.5;
+}
+
+.cc-hearth-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  gap:var(--sp-12);
+  margin-bottom:var(--sp-32);
+}
+.cc-hearth-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-top:3px solid var(--accent);
+  border-radius:var(--r-md);
+  padding:var(--sp-16);
+}
+.cc-hearth-card-label{
+  font-size:var(--fs-2xs);
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--accent);
+  font-weight:600;
+  margin-bottom:var(--sp-8);
+}
+.cc-hearth-card-body{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-md);
+  color:var(--text-primary);
+  line-height:1.4;
+  margin-bottom:var(--sp-4);
+}
+.cc-hearth-card-meta{
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  letter-spacing:0.03em;
+}
+
+/* --- City map — rooms as districts, not a flat grid --- */
+.cc-city-map{margin-top:var(--sp-24)}
+.cc-district{
+  margin-bottom:var(--sp-32);
+}
+.cc-district-header{
+  display:flex;
+  align-items:baseline;
+  gap:var(--sp-12);
+  flex-wrap:wrap;
+  padding-bottom:var(--sp-8);
+  border-bottom:1px solid var(--border-light);
+  margin-bottom:var(--sp-16);
+}
+.cc-district-label{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-xl);
+  color:var(--text-primary);
+  letter-spacing:0.02em;
+  font-weight:700;
+}
+.cc-district-note{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+}
+.cc-district-rooms{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:var(--sp-12);
+}
+
+/* --- Chronicle inscription strip — one line from the Republic's memory --- */
+.cc-chronicle-strip{
+  margin-top:var(--sp-32);
+  padding:var(--sp-20) var(--sp-16);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  text-align:center;
+  font-family:var(--ff-heading);
+  font-style:italic;
+  color:var(--text-secondary);
+  font-size:var(--fs-md);
+  line-height:1.5;
+  letter-spacing:0.02em;
+}
+.cc-chronicle-source{
+  display:block;
+  margin-top:var(--sp-8);
+  font-family:var(--ff-body);
+  font-style:normal;
+  font-size:var(--fs-2xs);
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-tertiary);
+  font-weight:600;
+}
 
 /* --- Utility --- */
 .cc-muted{color:var(--text-tertiary)}

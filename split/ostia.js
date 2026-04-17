@@ -75,6 +75,16 @@ CC.ostia.onCompanionsFetched = function() {
   if (room) CC.renderRoom(room);
 };
 
+// --- Render hook: once canons.json is cached, refresh the Civic Hearth ---
+// The Hearth shows a latest-canon card and a chronicle inscription, both drawn
+// from canons.json (canons[] + lore[]). When the fetch lands, re-render if
+// we're still on the home room so the presence becomes visible.
+CC.ostia.onCanonsFetched = function() {
+  if (CC.state.current_room !== 'home') return;
+  const room = CC.ROOMS.find(function(r) { return r.id === 'home'; });
+  if (room) CC.renderRoom(room);
+};
+
 // --- Canons rendering helper (used by Archives room) ---
 CC.ostia.renderCanonsInto = function(el) {
   if (!el) return;
@@ -132,10 +142,18 @@ CC.ostia.exportSnippet = function(snippet) {
 };
 
 // --- Auto-fetch at startup (non-blocking) ---
+// Warm both companions and canons so the Civic Hearth and resident cards
+// both have their records when the Overview renders. Independent promises;
+// a failure in one does not block the other.
 CC.ostia.warmStart = function() {
   CC.ostia.fetch('companions')
     .then(function() { CC.ostia.onCompanionsFetched(); })
     .catch(function(err) {
       console.warn('CC.ostia: initial companions fetch failed \u2014 Capital renders from residence data only', err.message);
+    });
+  CC.ostia.fetch('canons')
+    .then(function() { CC.ostia.onCanonsFetched(); })
+    .catch(function(err) {
+      console.warn('CC.ostia: initial canons fetch failed \u2014 Hearth renders with Dawn fallback', err.message);
     });
 };

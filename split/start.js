@@ -16,6 +16,12 @@
     const vlabel = CC.$('#ccVersionLabel');
     if (vlabel) vlabel.textContent = CC.VERSION;
 
+    // Built-date label (civic signature footer)
+    const bLabel = CC.$('#ccBuiltLabel');
+    if (bLabel && CC.BUILT) {
+      bLabel.textContent = 'built ' + (CC.formatDateShort ? CC.formatDateShort(CC.BUILT) : CC.BUILT);
+    }
+
     // Backdrop closes overlay
     const backdrop = CC.$('#overlayBackdrop');
     if (backdrop) backdrop.addEventListener('click', CC.closeOverlay, false);

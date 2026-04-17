@@ -47,10 +47,14 @@ CC.onRouteChange = function() {
   const path = CC.parseRoute();
   const room = CC.roomByRoute(path);
   if (!room) {
+    document.body.setAttribute('data-tonal', 'neutral');
     CC.renderNotFound(path);
     return;
   }
   CC.state.current_room = room.id;
+  // Tonal register cascades to card rules, headers, and breadcrumb chip.
+  // Charter Art. 4 — spatial metaphor delivered visually.
+  document.body.setAttribute('data-tonal', room.tonal_register || 'neutral');
   CC.renderRoom(room);
   CC.renderBreadcrumb(room);
   window.scrollTo(0, 0);
@@ -66,9 +70,20 @@ CC.renderBreadcrumb = function(room) {
     return;
   }
   bar.hidden = false;
-  const home = '<a href="#/" data-action="nav" data-target="/">Capital</a>';
-  const sep = '<span class="cc-breadcrumb-sep">\u203A</span>';
-  bar.innerHTML = home + sep + '<span>' + CC.escHtml(room.name) + '</span>';
+  // Civic signage: middle-dot separator, "The Capital" as formal address,
+  // tonal chip declaring the room's register and (for rooms with a
+  // ceremonial register) the Consul's implicit modulator context.
+  const home = '<a href="#/" data-action="nav" data-target="/">The Capital</a>';
+  const sep = '<span class="cc-breadcrumb-sep">\u00b7</span>';
+  const name = '<span>' + CC.escHtml(room.name) + '</span>';
+  let chip = '';
+  const tonal = room.tonal_register;
+  if (tonal && tonal !== 'neutral') {
+    chip = '<span class="cc-tonal-chip" data-tonal="' + CC.escAttr(tonal) + '">'
+      + '<span class="cc-tonal-chip-dot" aria-hidden="true"></span>'
+      + CC.escHtml(tonal) + '</span>';
+  }
+  bar.innerHTML = home + sep + name + chip;
 };
 
 // --- Toasts ---

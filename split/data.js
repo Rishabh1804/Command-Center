@@ -247,6 +247,52 @@ CC.RESIDENCE = {
   'cipher':   { residence_type: 'itinerant', chamber: 'visiting', status: 'active' },
 };
 
+// --- The Seventeen Immortals (Constitution Appendix C) ---
+// The founding roster of the Order. Used by the Civic Hearth to count undrafted
+// profiles. Names are the canonical companion ids in Codex's companions.json.
+CC.GEN_ZERO_IDS = [
+  'aurelius', 'theron', 'cipher', 'petra', 'solara', 'vex', 'ashara',
+  'lyra', 'kael', 'orinth', 'nyx', 'maren', 'rune', 'ignis', 'bard',
+  'aeon', 'pip',
+];
+
+// --- Districts of the Capital ---
+// The city is organized as districts, each grouping rooms by civic function.
+// Used by the Capital Overview (Civic Hearth) to render the Capital as a map
+// rather than a flat grid of tiles. Charter Article 4 — spatial metaphor.
+CC.DISTRICTS = [
+  {
+    id: 'civic',
+    label: 'The Civic Quarter',
+    note: 'Where the Republic gathers, ratifies, and displays itself.',
+    rooms: ['senate', 'temple', 'plaza', 'gates'],
+  },
+  {
+    id: 'ministers',
+    label: 'The Ministers\u2019 Wing',
+    note: 'The offices of the Cabinet. Treasury, Productivity, Stability, Growth.',
+    rooms: ['treasury', 'productivity', 'ministers-orinth', 'ministers-rune', 'ministers-bard'],
+  },
+  {
+    id: 'library',
+    label: 'The Library',
+    note: 'The Capital\u2019s reading room into Codex.',
+    rooms: ['archives'],
+  },
+  {
+    id: 'agora',
+    label: 'The Table & The Forum',
+    note: 'Exploratory. Where research gathers and proposals take first shape.',
+    rooms: ['table', 'forum'],
+  },
+  {
+    id: 'chambers',
+    label: 'The Visiting Chambers',
+    note: 'For itinerants and Province-residents summoned to the Capital.',
+    rooms: ['visiting'],
+  },
+];
+
 // --- Codex endpoint configuration ---
 // Builder decision pending: runtime fetch vs build-time bake.
 // Foundation-stage placeholder uses runtime raw-GitHub URLs.
