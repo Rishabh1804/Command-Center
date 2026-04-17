@@ -22,11 +22,6 @@
       bLabel.textContent = 'built ' + (CC.formatDateShort ? CC.formatDateShort(CC.BUILT) : CC.BUILT);
     }
 
-    // Apply saved orientation preference (default portrait). See CC.applyOrientation.
-    if (CC.applyOrientation) CC.applyOrientation(CC.getOrientation());
-    // Reapply the lock on orientationchange in case the browser or OS released it.
-    if (CC.bindOrientationListener) CC.bindOrientationListener();
-
     // Backdrop closes overlay
     const backdrop = CC.$('#overlayBackdrop');
     if (backdrop) backdrop.addEventListener('click', CC.closeOverlay, false);

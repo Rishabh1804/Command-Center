@@ -480,16 +480,6 @@ input,textarea,select{font:inherit;color:inherit}
   margin:0;
   letter-spacing:0.02em;
 }
-.cc-pref-diagnostic{
-  margin-top:var(--sp-8);
-  padding:var(--sp-8) var(--sp-12);
-  background:var(--bg-elevated);
-  border-left:2px solid var(--warning);
-  border-radius:0 var(--r-sm) var(--r-sm) 0;
-  font-style:normal;
-  color:var(--text-secondary);
-  line-height:1.5;
-}
 .cc-pref-actions{
   margin-top:var(--sp-24);
   padding-top:var(--sp-16);
