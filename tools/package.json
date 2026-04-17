@@ -1,0 +1,14 @@
+{
+  "name": "command-center-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pre-ship verification tooling for Command Center. Playwright-backed smoketest exercising the built index.html in headless Chromium before commit. Honors canon-gov-009 (instrument before features) and canon-gov-010 (label untested work honestly) by making 'tested in browser' a provable claim.",
+  "scripts": {
+    "build": "bash ../split/build.sh",
+    "smoketest": "node smoketest.js",
+    "verify": "bash ../split/build.sh && node smoketest.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}
