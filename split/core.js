@@ -124,6 +124,45 @@ CC.setTextSize = function(size) {
 
 CC.THEME_LABELS = { dark: 'Dark', light: 'Light' };
 CC.TEXT_SIZE_LABELS = { low: 'Small', med: 'Medium', high: 'Large' };
+CC.ORIENTATION_LABELS = { portrait: 'Portrait Only', auto: 'Auto' };
+
+// --- Orientation preference ---
+// The manifest declares "any" (app permits all orientations). At runtime the
+// Sovereign's preference governs: "portrait" applies a JS-level Screen
+// Orientation API lock; "auto" releases it and lets the OS auto-rotate
+// setting prevail. Default is "portrait" — predictable for phone-first use.
+// Screen Orientation API is well-supported on Android Chrome PWAs in
+// standalone display mode; in browser-tab mode the lock() call rejects and
+// we suppress silently.
+CC.getOrientation = function() {
+  try {
+    var v = localStorage.getItem('cc-orientation');
+    if (v === 'portrait' || v === 'auto') return v;
+  } catch (e) {}
+  return 'portrait';
+};
+
+CC.setOrientation = function(pref) {
+  if (pref !== 'portrait' && pref !== 'auto') return;
+  try { localStorage.setItem('cc-orientation', pref); } catch (e) {}
+  CC.applyOrientation(pref);
+};
+
+CC.applyOrientation = function(pref) {
+  if (typeof screen === 'undefined' || !screen.orientation) return;
+  if (pref === 'portrait') {
+    if (typeof screen.orientation.lock === 'function') {
+      try {
+        var p = screen.orientation.lock('portrait-primary');
+        if (p && typeof p.catch === 'function') p.catch(function() {});
+      } catch (e) { /* NotSupportedError outside standalone — silent */ }
+    }
+  } else {
+    if (typeof screen.orientation.unlock === 'function') {
+      try { screen.orientation.unlock(); } catch (e) { /* no-op */ }
+    }
+  }
+};
 
 // --- Settings overlay (Foundation — refined; Builders will extend) ---
 CC.openSettings = function() {
@@ -132,6 +171,7 @@ CC.openSettings = function() {
   if (!backdrop || !overlay) return;
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const currentSize = localStorage.getItem('cc-textSize') || 'med';
+  const currentOrient = CC.getOrientation();
   const themeBtn = function(id) {
     const selected = id === current ? ' aria-pressed="true"' : ' aria-pressed="false"';
     return '<button class="cc-pref-btn" data-action="setTheme" data-theme="' + CC.escAttr(id) + '"' + selected + '>'
@@ -141,6 +181,11 @@ CC.openSettings = function() {
     const selected = id === currentSize ? ' aria-pressed="true"' : ' aria-pressed="false"';
     return '<button class="cc-pref-btn" data-action="setTextSize" data-size="' + CC.escAttr(id) + '"' + selected + '>'
       + CC.escHtml(CC.TEXT_SIZE_LABELS[id] || id) + '</button>';
+  };
+  const orientBtn = function(id) {
+    const selected = id === currentOrient ? ' aria-pressed="true"' : ' aria-pressed="false"';
+    return '<button class="cc-pref-btn" data-action="setOrientation" data-orient="' + CC.escAttr(id) + '"' + selected + '>'
+      + CC.escHtml(CC.ORIENTATION_LABELS[id] || id) + '</button>';
   };
   overlay.innerHTML = [
     '<h3 class="cc-overlay-title">Settings</h3>',
@@ -154,6 +199,14 @@ CC.openSettings = function() {
     '<h4 class="cc-pref-label">Text size</h4>',
     '<div class="cc-pref-row">' + sizeBtn('low') + sizeBtn('med') + sizeBtn('high') + '</div>',
     '<p class="cc-pref-current">Current: ' + CC.escHtml(CC.TEXT_SIZE_LABELS[currentSize] || currentSize) + '</p>',
+    '</div>',
+    '<div class="cc-pref-group">',
+    '<h4 class="cc-pref-label">Orientation</h4>',
+    '<div class="cc-pref-row">' + orientBtn('portrait') + orientBtn('auto') + '</div>',
+    '<p class="cc-pref-current">Current: ' + CC.escHtml(CC.ORIENTATION_LABELS[currentOrient] || currentOrient) + '. '
+      + (currentOrient === 'portrait'
+        ? 'The Capital stays portrait regardless of phone auto-rotate.'
+        : 'The Capital follows the phone\u2019s auto-rotate setting.') + '</p>',
     '</div>',
     '<div class="cc-pref-actions">',
     '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="closeOverlay">Close</button>',
@@ -265,6 +318,15 @@ CC.dispatchAction = function(action, el, e) {
       const s = el.getAttribute('data-size');
       if (s) {
         CC.setTextSize(s);
+        const overlay = CC.$('#overlayContainer');
+        if (overlay && !overlay.hidden) CC.openSettings();
+      }
+      break;
+    }
+    case 'setOrientation': {
+      const o = el.getAttribute('data-orient');
+      if (o) {
+        CC.setOrientation(o);
         const overlay = CC.$('#overlayContainer');
         if (overlay && !overlay.hidden) CC.openSettings();
       }
