@@ -45,6 +45,8 @@
   --warning:#E0A850;
   --error:#D46A6A;
   --civic:#9D6B3C;  /* ceremonial, used sparingly */
+  --gold:#E6C35C;   /* actual gold, used for fresh-activity glow */
+  --gold-glow:rgba(230, 195, 92, 0.55);
   --card-shadow:0 1px 3px rgba(0,0,0,0.35);
   --card-shadow-lg:0 4px 12px rgba(0,0,0,0.4);
 }
@@ -68,6 +70,8 @@
   --warning:#C4883A;
   --error:#B84C4C;
   --civic:#7A5830;
+  --gold:#C9A14A;   /* actual gold, used for fresh-activity glow */
+  --gold-glow:rgba(201, 161, 74, 0.5);
   --card-shadow:0 1px 3px rgba(44,32,20,0.08);
   --card-shadow-lg:0 4px 12px rgba(44,32,20,0.12);
 }
@@ -779,21 +783,49 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   .cc-hearth-tile{animation:none;opacity:1}
 }
 
-/* Fresh glow — items with activity in the last day earn a civic accent. */
+/* Fresh glow — items with activity in the last day earn a gold accent
+   that breathes. A ::after pseudo-element carries the pulsing shadow so
+   the animation is independent of the tile's one-time bloom-in. The glow
+   is visible even when the page isn't reloaded (PWA launches to cached
+   state skip the bloom; the pulse persists regardless). */
+.cc-hearth-tile{position:relative}
 .cc-hearth-tile-fresh{
-  border-top-color:var(--civic);
-  box-shadow:0 0 0 1px var(--civic) inset, var(--card-shadow);
+  border-top-color:var(--gold);
+}
+.cc-hearth-tile-fresh::after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  pointer-events:none;
+  box-shadow:0 0 0 0 transparent;
+  animation:hearth-fresh-pulse 2.6s ease-in-out infinite;
+}
+@keyframes hearth-fresh-pulse{
+  0%,100%{box-shadow:0 0 0 0 var(--gold-glow), 0 0 0 1px var(--gold) inset}
+  50%{box-shadow:0 0 16px 2px var(--gold-glow), 0 0 0 1px var(--gold) inset}
 }
 .cc-hearth-tile-fresh:hover,
 .cc-hearth-tile-fresh:active{
-  border-top-color:var(--accent);
+  border-top-color:var(--gold);
 }
 .cc-hearth-tile-fresh-dot{
-  color:var(--civic);
-  font-size:8px;
+  color:var(--gold);
+  font-size:9px;
   line-height:1;
   margin-left:auto;
   align-self:center;
+  animation:hearth-fresh-dot 1.8s ease-in-out infinite;
+  display:inline-block;
+  transform-origin:center;
+}
+@keyframes hearth-fresh-dot{
+  0%,100%{opacity:0.55;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.45)}
+}
+@media (prefers-reduced-motion: reduce){
+  .cc-hearth-tile-fresh::after{animation:none;box-shadow:0 0 0 1px var(--gold) inset}
+  .cc-hearth-tile-fresh-dot{animation:none;opacity:1}
 }
 
 /* Warn tone — Scriptorium tile when there are unresolved errors/warnings. */
@@ -817,7 +849,7 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   flex-shrink:0;
 }
 .cc-hearth-tile-icon svg{width:100%;height:100%;display:block}
-.cc-hearth-tile-fresh .cc-hearth-tile-icon{color:var(--civic)}
+.cc-hearth-tile-fresh .cc-hearth-tile-icon{color:var(--gold)}
 .cc-hearth-tile-warn .cc-hearth-tile-icon{color:var(--warning)}
 .cc-hearth-tile-label{
   font-size:var(--fs-2xs);
@@ -826,7 +858,7 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   color:var(--accent);
   font-weight:600;
 }
-.cc-hearth-tile-fresh .cc-hearth-tile-label{color:var(--civic)}
+.cc-hearth-tile-fresh .cc-hearth-tile-label{color:var(--gold)}
 .cc-hearth-tile-warn .cc-hearth-tile-label{color:var(--warning)}
 .cc-hearth-tile-body{
   font-family:var(--ff-heading);
