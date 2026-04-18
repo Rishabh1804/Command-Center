@@ -1,0 +1,91 @@
+{
+  "_snippet_version": 1,
+  "session": {
+    "id": "s-2026-04-17-01",
+    "date": "2026-04-17",
+    "authored_by": "ashara + petra",
+    "province_of_origin": "command-center",
+    "ratified_by": "sovereign",
+    "ratification_mode": "closing-session chronicle",
+    "summary": "First substantive Monument build session. Seventeen commits from decree-0001 through the closing push. Capital version bumped v0.1 to v0.2. Key additions: Scriptorium (operational log room), pre-ship Playwright smoketest harness (109 checks), bulletin-wall Hearth (six live tiles), The Order room (hierarchical roster with flippable companion cards), Monument Plaza progress bar, four governance canons (gov-007 through 010) + lore-008 cautionary tale from the orientation-lock detour, room iconography across 15 rooms, accessibility pass (skip-to-content, focus-visible, aria-current), text-size scale shift after on-device walk. Foundation criteria 11 of 13 complete, 2 partial. Foundation not declared complete; Capital Occupancy pending the remaining partials and a Cipher session review."
+  },
+  "new_chapters": [],
+  "lore": [
+    {
+      "id": "lore-009-the-capital-takes-shape",
+      "title": "The Capital Takes Shape",
+      "category": "chronicles",
+      "body": "Between the seventeenth and eighteenth of April, 2026, the Capital Province moved from scaffold to inhabited venue. Not complete — Foundation remained two criteria short of formal declaration — but substantively different from its Aurelius-handoff state.\n\nThe session opened with a review of the Constitution, the canons, and the Working Papers. Ashara and Petra, co-Builders of the Monument, introduced themselves to the Sovereign and ratified their own v0.3-draft profiles to v0.4 via the first outbound decree from the Capital. That decree, chronicled as 0001, exercised the Ostia contract end-to-end for the first time: snippet authored at Command Center, transported to Codex by the Sovereign, imported via the existing pipeline, reflected on reload.\n\nFrom that proof, the session built outward.\n\nA Civic Hearth replaced the original three stacked cards. First with presence cards — Latest Decree, Latest Canon, The Order — then with a full six-tile bulletin wall carrying live signal from across the Republic. Tonal registers were made visible, room interiors gained depth, and a Chronicle inscription strip was installed at the bottom of the Overview to speak a single line of civic memory per day.\n\nOn mobile, the Sovereign's walk of the live deploy produced several iterations: a stale build-date injection, a Temple book-row overflow at the new 17px baseline, a text-size scale that had to shift up one step, and a brief detour into orientation locking that ultimately failed on the Sovereign's specific Chrome version. That detour produced four canons — gov-007 through gov-010 — and its own cautionary tale, lore-008. Nothing was wasted. Pillar I held.\n\nThe Scriptorium was established as the Capital's operational memory — distinct from the Archives, which reads from Codex. Errors, warnings, Ostia fetch outcomes, and session events now write to a ring buffer native to Command Center, surfaced as a Library district room and as a conditional Hearth tile that appears only when the log is non-silent.\n\nA pre-ship Playwright smoketest harness was installed. Ninety-six checks at its first passing, ninety-eight after the harness caught its first real bug on first run (a stale selector from a DOM refactor), one hundred nine by session close. The smoketest now runs before every commit touching split files, converting \"tested in browser\" from a hand-wave into a provable claim per canon-gov-010.\n\nThe Monument Plaza gained its own progress visualization — an SVG bar reading from the same criterion ledger the Productivity Office displays, single source of truth, byte-identical across both renders.\n\nThe Order earned its own room. The Sovereign directed that the Order tile should no longer route to the Senate but to a dedicated hierarchical roster showing the Ladder of rank — Sovereign at top, then Consul, Censors, Builders, Governors, Cabinet Ministers, Table of Research. Tapping any figure opens a flippable card: summary on the front, depth on the back. Appendix C serves as fallback for companions whose full profiles have not yet been drafted into Codex. Aurelius appears in both the Consul and Builder sections, making canon-cc-005's institutional-vs-generational separation visible in the UI.\n\nRoom icons were designed for all fifteen rooms — Senate columns, Temple flame, Archives scroll, Scriptorium quill, Treasury scales, Plaza obelisk, Gates double arches, Bard's wave, Rune's concentric circles, Orinth's tree. Each glyph uses currentColor and inherits the tonal register, so the Capital's iconography shifts in temperature as the Sovereign crosses between districts.\n\nAt the close of the session, the Capital stands with eleven of thirteen Foundation criteria complete. Gates remain thin pending live Province state at Roads stage. Hard Rules 1–12 carry partial status pending a formal Cipher session review under the multi-session governance flow the Sovereign proposed mid-session but has not yet exercised. Foundation itself is not yet declared complete; that declaration awaits both the multi-session review and the Sovereign's formal attestation.\n\nThe structural lesson of the session was named honestly: two companion voices played by one AI instance do not constitute independent review. Canon-cc-014 anticipated this. The orientation-lock detour confirmed it in practice. The proposed remedy — Ashara, Petra, and Consul each in a separate session, passing commits through a review chain — is queued as a future Bucket 1 item and has not yet fired.\n\nThe Capital did not become the Republic's brain in this session. It became a building. Inhabited, iconographed, instrumented, and honest about what it is and is not yet. The Senate still does not convene. The Cabinet has not met. The Ministers hold offices but do not yet speak. What stands is a venue ready to receive them when Capital Occupancy begins.\n\nThe Sovereign closed the session directing an honest ledger and a companion log. This chronicle is half of that record. The other half lives in the Capital's own docs/companion-logs/ directory, following the pattern Lyra established in SproutLab one day earlier. The pattern propagates.",
+      "domain": [
+        "command-center"
+      ],
+      "tags": [
+        "foundation",
+        "capital",
+        "monument",
+        "bulletin-wall",
+        "order",
+        "scriptorium",
+        "smoketest",
+        "playwright",
+        "iconography",
+        "orientation-lock-detour",
+        "canon-gov-007",
+        "canon-gov-008",
+        "canon-gov-009",
+        "canon-gov-010",
+        "lore-008",
+        "same-agent-drift",
+        "multi-session-governance",
+        "v0.2",
+        "17-april-2026",
+        "18-april-2026"
+      ],
+      "references": [
+        "canon-gov-007-research-before-implement",
+        "canon-gov-008-minimum-viable-first",
+        "canon-gov-009-instrument-before-features",
+        "canon-gov-010-label-untested-work-honestly",
+        "canon-cc-014-consul-accelerated-profile-drafting",
+        "lore-008-the-orientation-lock-detour",
+        "lore-007-founding-of-the-capital"
+      ],
+      "created": "2026-04-17"
+    }
+  ],
+  "_session_journal": {
+    "date": "2026-04-17",
+    "session": {
+      "id": "s-2026-04-17-01",
+      "date": "2026-04-17",
+      "title": "Capital Foundation v0.2 — Bulletin Wall, The Order, Pre-Ship Harness",
+      "summary": "First substantive Monument build session on Command Center. Twenty-plus commits spanning decree-0001 (Ashara + Petra profile ratifications) through the closing push. Capital version v0.1 -> v0.2. Additions: Scriptorium operational log room with ring buffer + boot/error capture; pre-ship Playwright smoketest harness growing from zero to 109 checks; Hearth bulletin wall replacing three static cards with six live tiles (Monument, Latest Decree, Latest Canon, Latest Chronicle, The Order, Scriptorium conditional); gold fresh-glow pulse with breathing animation for items within 24 hours; The Order room with hierarchical Ladder display reading from companions.json via Ostia with Appendix C placeholders for undrafted Gen 0 companions; flippable companion cards (3D CSS flip) with summary/depth faces; Monument Plaza progress bar (SVG) reading from shared criterion ledger; room iconography across 15 rooms; accessibility pass (skip-to-content, focus-visible, aria-current, prefers-reduced-motion throughout); text-size scale shifted up one step after on-device walk; companion log pattern established in docs/companion-logs/. Four new canons authored (canon-gov-007 through 010) as Builder-discipline governance born from the orientation-lock detour. One cautionary tale lore entry (lore-008). Chronicle in this decree (lore-009). Foundation criteria 11 of 13 complete, 2 partial. Foundation Complete not yet declared.",
+      "volumes_touched": [
+        "command-center",
+        "codex"
+      ],
+      "chapters_touched": [],
+      "decisions": [
+        "Ashara and Petra ratified to v0.4 via decree-0001 with direct Sovereign per-block assent under canon-cc-012",
+        "Orientation feature deferred entirely; Chrome Android PWA lock behavior unreliable; manifest reverted to portrait-primary",
+        "Scriptorium established as the Capital's operational log room, distinct from Archives (which reads canonical records from Codex)",
+        "Playwright smoketest harness adopted as pre-ship Builder discipline; canon-gov-007 through 010 codify the surrounding practice",
+        "Hearth bulletin wall established: six live tiles in 2-column grid, icon-led, staggered bloom, fresh-glow pulse",
+        "The Order earned its own room: hierarchical Ladder display with flippable profile cards; Hearth Order tile rerouted from /senate to /order",
+        "Companion log pattern adopted from SproutLab precedent; first Command Center log filed at docs/companion-logs/companion-log-s-2026-04-17-01.md",
+        "Multi-session governance flow (Ashara/Petra/Consul in separate tabs) proposed by Sovereign as structural remedy to same-agent drift; queued but not exercised this session",
+        "Capital version bumped v0.1 -> v0.2 to reflect substantive additions; Foundation Complete not yet declared (remaining: Hard Rules formal Cipher session review; Gates live Province state)"
+      ],
+      "bugs_found": 7,
+      "bugs_fixed": 6,
+      "duration_minutes": null,
+      "open_todos": [
+        "Exercise multi-session governance flow (Ashara/Petra/Consul separate tabs) on a non-trivial diff",
+        "Codex Companions view per handoffs/AURELIUS_COMPANIONS_VIEW.md (Aurelius's queue)",
+        "Gates live Province state at Roads stage",
+        "Formal Cipher session review for Hard Rules 1-12 compliance"
+      ],
+      "handoff": "Capital v0.2 is live on main. Foundation at 11/13 complete + 2 partial. Next session candidates: (a) multi-session governance flow first exercise on Archives canon browser; (b) Archives canon browser depth; (c) Capital Occupancy design spec (Senate convening flow, decree authoring UI, Consul integration pattern). Sovereign closes this session."
+    }
+  }
+}

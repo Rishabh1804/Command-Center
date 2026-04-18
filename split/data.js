@@ -8,7 +8,7 @@
 const CC = {};
 
 // --- App metadata ---
-CC.VERSION = 'v0.1 · Foundation';
+CC.VERSION = 'v0.2 · Foundation';
 CC.BUILT = '2026-04-16';
 
 // --- Province registry ---
