@@ -1453,6 +1453,7 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   top:0;left:0;right:0;bottom:0;
   min-height:380px;
   padding:var(--sp-4);
+  padding-top:52px;
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
   overflow-y:auto;
@@ -1538,14 +1539,44 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   line-height:1.55;
 }
 .cc-comp-block-list li{margin-bottom:var(--sp-2)}
-.cc-comp-actions{
-  margin-top:var(--sp-16);
-  padding-top:var(--sp-16);
-  border-top:1px solid var(--border-light);
+/* Card controls — two icon buttons at the top-right corner of the card.
+   Positioned absolutely on the .cc-comp-card (outside .cc-comp-card-inner
+   so they stay flat while the inner faces rotate). Meet HIG 44x44 touch
+   target via padding; SVG glyph at 20x20 inside. */
+.cc-comp-card-controls{
+  position:absolute;
+  top:0;
+  right:0;
+  z-index:3;
   display:flex;
-  justify-content:space-between;
-  gap:var(--sp-8);
+  gap:var(--sp-4);
+  padding:var(--sp-4);
 }
+.cc-comp-ctrl-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:40px;
+  height:40px;
+  border-radius:var(--r-full);
+  background:transparent;
+  color:var(--text-secondary);
+  touch-action:manipulation;
+  transition:background var(--anim-fade), color var(--anim-fade);
+}
+.cc-comp-ctrl-btn:hover,
+.cc-comp-ctrl-btn:active{
+  background:var(--bg-elevated);
+  color:var(--text-primary);
+}
+.cc-comp-ctrl-btn:focus-visible{
+  outline:2px solid var(--focus-ring);
+  outline-offset:2px;
+}
+.cc-comp-ctrl-btn svg{display:block}
+
+/* Top padding on faces clears the control cluster — content starts below
+   the controls rather than fighting for the right edge across full height. */
 
 @media (prefers-reduced-motion: reduce){
   .cc-comp-card-inner{transition:none}
@@ -3615,6 +3646,22 @@ CC.openCompanionCard = function(companionId) {
   CC._compCardId = companionId;
   overlay.innerHTML = [
     '<div class="cc-comp-card" data-flipped="false">',
+    '<div class="cc-comp-card-controls">',
+    '<button class="cc-comp-ctrl-btn" data-action="flipCompanion" aria-label="Flip card">',
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+    '<path d="M3 12 A 9 9 0 0 1 19 7"/>',
+    '<polyline points="19 3 19 7 15 7"/>',
+    '<path d="M21 12 A 9 9 0 0 1 5 17"/>',
+    '<polyline points="5 21 5 17 9 17"/>',
+    '</svg>',
+    '</button>',
+    '<button class="cc-comp-ctrl-btn" data-action="closeOverlay" aria-label="Close">',
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">',
+    '<line x1="6" y1="6" x2="18" y2="18"/>',
+    '<line x1="18" y1="6" x2="6" y2="18"/>',
+    '</svg>',
+    '</button>',
+    '</div>',
     '<div class="cc-comp-card-inner">',
     '<div class="cc-comp-face cc-comp-face-front">',
     CC.renderCompanionCardFront(rec),
@@ -3623,10 +3670,6 @@ CC.openCompanionCard = function(companionId) {
     CC.renderCompanionCardBack(rec),
     '</div>',
     '</div>',
-    '</div>',
-    '<div class="cc-comp-actions">',
-    '<button class="cc-pref-btn" data-action="flipCompanion">Flip</button>',
-    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="closeOverlay">Close</button>',
     '</div>',
   ].join('');
   backdrop.hidden = false;

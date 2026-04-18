@@ -1375,6 +1375,7 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   top:0;left:0;right:0;bottom:0;
   min-height:380px;
   padding:var(--sp-4);
+  padding-top:52px;
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
   overflow-y:auto;
@@ -1460,14 +1461,44 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   line-height:1.55;
 }
 .cc-comp-block-list li{margin-bottom:var(--sp-2)}
-.cc-comp-actions{
-  margin-top:var(--sp-16);
-  padding-top:var(--sp-16);
-  border-top:1px solid var(--border-light);
+/* Card controls — two icon buttons at the top-right corner of the card.
+   Positioned absolutely on the .cc-comp-card (outside .cc-comp-card-inner
+   so they stay flat while the inner faces rotate). Meet HIG 44x44 touch
+   target via padding; SVG glyph at 20x20 inside. */
+.cc-comp-card-controls{
+  position:absolute;
+  top:0;
+  right:0;
+  z-index:3;
   display:flex;
-  justify-content:space-between;
-  gap:var(--sp-8);
+  gap:var(--sp-4);
+  padding:var(--sp-4);
 }
+.cc-comp-ctrl-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:40px;
+  height:40px;
+  border-radius:var(--r-full);
+  background:transparent;
+  color:var(--text-secondary);
+  touch-action:manipulation;
+  transition:background var(--anim-fade), color var(--anim-fade);
+}
+.cc-comp-ctrl-btn:hover,
+.cc-comp-ctrl-btn:active{
+  background:var(--bg-elevated);
+  color:var(--text-primary);
+}
+.cc-comp-ctrl-btn:focus-visible{
+  outline:2px solid var(--focus-ring);
+  outline-offset:2px;
+}
+.cc-comp-ctrl-btn svg{display:block}
+
+/* Top padding on faces clears the control cluster — content starts below
+   the controls rather than fighting for the right edge across full height. */
 
 @media (prefers-reduced-motion: reduce){
   .cc-comp-card-inner{transition:none}

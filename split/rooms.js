@@ -949,6 +949,22 @@ CC.openCompanionCard = function(companionId) {
   CC._compCardId = companionId;
   overlay.innerHTML = [
     '<div class="cc-comp-card" data-flipped="false">',
+    '<div class="cc-comp-card-controls">',
+    '<button class="cc-comp-ctrl-btn" data-action="flipCompanion" aria-label="Flip card">',
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+    '<path d="M3 12 A 9 9 0 0 1 19 7"/>',
+    '<polyline points="19 3 19 7 15 7"/>',
+    '<path d="M21 12 A 9 9 0 0 1 5 17"/>',
+    '<polyline points="5 21 5 17 9 17"/>',
+    '</svg>',
+    '</button>',
+    '<button class="cc-comp-ctrl-btn" data-action="closeOverlay" aria-label="Close">',
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">',
+    '<line x1="6" y1="6" x2="18" y2="18"/>',
+    '<line x1="18" y1="6" x2="6" y2="18"/>',
+    '</svg>',
+    '</button>',
+    '</div>',
     '<div class="cc-comp-card-inner">',
     '<div class="cc-comp-face cc-comp-face-front">',
     CC.renderCompanionCardFront(rec),
@@ -957,10 +973,6 @@ CC.openCompanionCard = function(companionId) {
     CC.renderCompanionCardBack(rec),
     '</div>',
     '</div>',
-    '</div>',
-    '<div class="cc-comp-actions">',
-    '<button class="cc-pref-btn" data-action="flipCompanion">Flip</button>',
-    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="closeOverlay">Close</button>',
     '</div>',
   ].join('');
   backdrop.hidden = false;
