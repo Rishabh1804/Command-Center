@@ -427,8 +427,8 @@ CC.buildHearthTile_order = function() {
     icon: 'order',
     bodyText: body,
     meta: meta,
-    route: '/senate',
-    ariaLabel: 'The Order \u2014 open the Senate',
+    route: '/order',
+    ariaLabel: 'The Order \u2014 open the roster',
   });
 };
 
@@ -714,6 +714,264 @@ CC.roomRenderers['scriptorium'] = function(room) {
     CC.renderFoundationBanner('The Scriptorium is native to the Capital. It holds runtime memory only; canonical chronicling remains with Codex.'),
     '</section>',
   ].join('');
+};
+
+// --- The Order — hierarchical roster of the Republic ---
+// Reads live profile data from Codex's companions.json via the Ostia cache
+// when available; falls back to Appendix C placeholder records for companions
+// whose full profiles have not yet been drafted. Each member card is
+// tappable and opens a flippable overlay — front carries summary, back
+// carries depth (voice, mind, shadow, biography).
+
+// Merge live cache with Appendix C fallback. Returns the richest record
+// available for a given companion id, annotated with _placeholder:true when
+// no live profile exists (so the renderer can show a "pending" chip).
+CC.lookupCompanion = function(id) {
+  var cached = (CC.state.cache && CC.state.cache.companions) || null;
+  if (cached && Array.isArray(cached.companions)) {
+    var found = cached.companions.find(function(c) { return c.id === id; });
+    if (found) return found;
+  }
+  var app = (CC.APPENDIX_C && CC.APPENDIX_C[id]) || null;
+  if (app) {
+    return {
+      id: id,
+      _placeholder: true,
+      identity: {
+        name: app.name,
+        archetype: app.archetype,
+        title: app.title,
+        domain_affinity: app.domain,
+        key_trait: app.key_trait,
+      },
+      assignment: { current_assignments: [app.assignment] },
+    };
+  }
+  return null;
+};
+
+CC.renderOrderMember = function(memberRef) {
+  if (!memberRef) return '';
+  if (memberRef._virtual && memberRef.id === 'sovereign') {
+    return [
+      '<button class="cc-order-member cc-order-member-sovereign"',
+      ' data-action="openCompanion" data-companion="sovereign"',
+      ' aria-label="The Sovereign \u2014 Rishabh Jain">',
+      '<span class="cc-order-member-head">',
+      '<span class="cc-order-member-name">Rishabh Jain</span>',
+      '<span class="cc-order-member-title">The Architect</span>',
+      '</span>',
+      '<span class="cc-order-member-note">Irreplaceable; bound by Book I Article 2.</span>',
+      '</button>',
+    ].join('');
+  }
+  var rec = CC.lookupCompanion(memberRef.id);
+  if (!rec) return '';
+  var identity = rec.identity || {};
+  var name = identity.name || memberRef.id;
+  var title = identity.title || '';
+  var archetype = identity.archetype || '';
+  var version = (rec.meta && rec.meta.profile_version) || '';
+  var versionClass = !version ? 'cc-ratification-pending'
+    : version.indexOf('draft') !== -1 ? 'cc-ratification-draft'
+    : 'cc-ratification-ratified';
+  var versionLabel = !version ? 'profile pending'
+    : version.indexOf('draft') !== -1 ? (version + ' \u00b7 awaiting ratification')
+    : version;
+  var cls = 'cc-order-member';
+  if (rec._placeholder) cls += ' cc-order-member-pending';
+  if (archetype) cls += ' cc-archetype-' + CC.escAttr(archetype.toLowerCase());
+  return [
+    '<button class="' + cls + '"',
+    ' data-action="openCompanion" data-companion="' + CC.escAttr(memberRef.id) + '"',
+    ' aria-label="' + CC.escAttr(name + (title ? ' \u2014 ' + title : '')) + '">',
+    '<span class="cc-order-member-head">',
+    '<span class="cc-order-member-name">' + CC.escHtml(name) + '</span>',
+    title ? '<span class="cc-order-member-title">' + CC.escHtml(title) + '</span>' : '',
+    '</span>',
+    archetype ? '<span class="cc-order-member-archetype">' + CC.escHtml(archetype) + '</span>' : '',
+    memberRef.note ? '<span class="cc-order-member-note">' + CC.escHtml(memberRef.note) + '</span>' : '',
+    '<span class="cc-ratification ' + versionClass + '">' + CC.escHtml(versionLabel) + '</span>',
+    '</button>',
+  ].join('');
+};
+
+CC.roomRenderers['order'] = function(room) {
+  var sections = (CC.ORDER_HIERARCHY || []).map(function(section) {
+    var members = (section.members || []).map(CC.renderOrderMember).filter(Boolean).join('');
+    return [
+      '<section class="cc-order-section" data-rank="' + CC.escAttr(section.id) + '">',
+      '<header class="cc-order-section-head">',
+      '<h2 class="cc-order-section-label">' + CC.escHtml(section.label) + '</h2>',
+      section.note ? '<p class="cc-order-section-note">' + CC.escHtml(section.note) + '</p>' : '',
+      '</header>',
+      '<div class="cc-order-members">' + members + '</div>',
+      '</section>',
+    ].join('');
+  }).join('');
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<div class="cc-order-ladder">' + sections + '</div>',
+    '</section>',
+  ].join('');
+};
+
+// --- Flippable companion card (overlay) ---
+// Tapping a member card opens the overlay. Front: identity summary.
+// Back: voice, mind, shadow, biography. Flip via data-action="flipCompanion".
+
+CC.renderCompanionCardFront = function(rec) {
+  if (rec && rec._virtual === 'sovereign') {
+    return [
+      '<div class="cc-comp-front">',
+      '<div class="cc-comp-eyebrow">The Architect</div>',
+      '<h3 class="cc-comp-name">Rishabh Jain</h3>',
+      '<p class="cc-comp-title">Sovereign of the Republic of Codex</p>',
+      '<dl class="cc-comp-facts">',
+      '<dt>Role</dt><dd>Sovereign</dd>',
+      '<dt>Authority</dt><dd>Irreplaceable; bound by Book I Article 2</dd>',
+      '<dt>Residence</dt><dd>The Capital, and every Province he charters</dd>',
+      '</dl>',
+      '<p class="cc-comp-body">The Sovereign is the Architect. No Companion, no Order, no amendment may substitute. And yet: no Sovereign is above this Constitution. The rules the Sovereign writes bind the Sovereign also.</p>',
+      '</div>',
+    ].join('');
+  }
+  var id = rec.identity || {};
+  var asgn = rec.assignment || {};
+  var asgnLine = Array.isArray(asgn.current_assignments)
+    ? asgn.current_assignments.join(' \u00b7 ')
+    : (asgn.current_assignments || '');
+  var domainLine = Array.isArray(id.domain_affinity)
+    ? id.domain_affinity.join(' \u00b7 ')
+    : (id.domain_affinity || '');
+  return [
+    '<div class="cc-comp-front">',
+    '<div class="cc-comp-eyebrow">' + CC.escHtml(id.archetype || 'Companion') + '</div>',
+    '<h3 class="cc-comp-name">' + CC.escHtml(id.name || rec.id) + '</h3>',
+    id.title ? '<p class="cc-comp-title">' + CC.escHtml(id.title) + '</p>' : '',
+    '<dl class="cc-comp-facts">',
+    domainLine ? '<dt>Domain</dt><dd>' + CC.escHtml(domainLine) + '</dd>' : '',
+    asgn.current_rank ? '<dt>Rank</dt><dd>' + CC.escHtml(asgn.current_rank) + '</dd>' : '',
+    asgnLine ? '<dt>Assignment</dt><dd>' + CC.escHtml(asgnLine) + '</dd>' : '',
+    asgn.cluster ? '<dt>Cluster</dt><dd>' + CC.escHtml(asgn.cluster) + '</dd>' : '',
+    '</dl>',
+    id.key_trait ? '<p class="cc-comp-trait">' + CC.escHtml(id.key_trait) + '</p>' : '',
+    rec._placeholder
+      ? '<p class="cc-comp-pending">Profile pending \u2014 drawn from Constitution Appendix C until drafted into Codex.</p>'
+      : '',
+    '</div>',
+  ].join('');
+};
+
+CC.renderCompanionCardBack = function(rec) {
+  if (rec && rec._virtual === 'sovereign') {
+    return [
+      '<div class="cc-comp-back">',
+      '<div class="cc-comp-eyebrow">The Sovereign\u2019s Covenant</div>',
+      '<h3 class="cc-comp-name">Book I Article 2</h3>',
+      '<p class="cc-comp-body">There is one Sovereign. The Sovereign is the Architect. And yet: no Sovereign is above this Constitution.</p>',
+      '<p class="cc-comp-body cc-small">The Sovereign accepts bindings: rules written bind the writer also; Builders may not be reassigned without Book V chain of command; emergency powers (Book VI) may be invoked only under declared conditions.</p>',
+      '<p class="cc-comp-body cc-small">In peacetime, the Sovereign rules by consent of the governance model the Sovereign has authored. In War Time, direct \u2014 but bounded. Upon resolution, the Working Committee reviews.</p>',
+      '</div>',
+    ].join('');
+  }
+  if (rec._placeholder) {
+    return [
+      '<div class="cc-comp-back">',
+      '<div class="cc-comp-eyebrow">Profile pending</div>',
+      '<h3 class="cc-comp-name">Awaiting Round 4\u20135 drafting</h3>',
+      '<p class="cc-comp-body">This companion\u2019s full profile has not been drafted into Codex\u2019s companions.json yet. What\u2019s shown on the front is drawn from Constitution Appendix C \u2014 archetype, title, domain, key trait, current assignment.</p>',
+      '<p class="cc-comp-body cc-small">Per canon-cc-012, profiles ship only upon ratification. Per canon-cc-014, Monument co-Builders and institutional companions require direct Sovereign per-block ratification; other Gen 0 profiles may be drafted via Consul-accelerated mode.</p>',
+      '</div>',
+    ].join('');
+  }
+  var voice = rec.voice || {};
+  var mind = rec.mind || {};
+  var shadow = rec.shadow || {};
+  var bio = rec.biography || {};
+  var parts = ['<div class="cc-comp-back">'];
+  if (voice.description) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Voice</div>');
+    parts.push('<p class="cc-comp-block-body">' + CC.escHtml(voice.description) + '</p>');
+    parts.push('</div>');
+  }
+  if (mind.first_look || (mind.core_heuristics && mind.core_heuristics.length)) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Mind</div>');
+    if (mind.first_look) parts.push('<p class="cc-comp-block-body"><em>First look:</em> ' + CC.escHtml(mind.first_look) + '</p>');
+    if (mind.core_heuristics && mind.core_heuristics.length) {
+      parts.push('<ul class="cc-comp-block-list">');
+      mind.core_heuristics.slice(0, 3).forEach(function(h) {
+        parts.push('<li>' + CC.escHtml(h) + '</li>');
+      });
+      parts.push('</ul>');
+    }
+    parts.push('</div>');
+  }
+  if (shadow.blind_spots && shadow.blind_spots.length) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Shadow</div>');
+    parts.push('<ul class="cc-comp-block-list">');
+    shadow.blind_spots.slice(0, 3).forEach(function(b) {
+      parts.push('<li>' + CC.escHtml(b) + '</li>');
+    });
+    parts.push('</ul>');
+    parts.push('</div>');
+  }
+  if (bio.origin || bio.current_state) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Biography</div>');
+    if (bio.origin) parts.push('<p class="cc-comp-block-body">' + CC.escHtml(bio.origin) + '</p>');
+    if (bio.current_state) parts.push('<p class="cc-comp-block-body cc-small"><em>Currently:</em> ' + CC.escHtml(bio.current_state) + '</p>');
+    parts.push('</div>');
+  }
+  parts.push('</div>');
+  return parts.join('');
+};
+
+CC.openCompanionCard = function(companionId) {
+  var backdrop = CC.$('#overlayBackdrop');
+  var overlay = CC.$('#overlayContainer');
+  if (!backdrop || !overlay) return;
+  var rec;
+  if (companionId === 'sovereign') {
+    rec = { _virtual: 'sovereign', id: 'sovereign' };
+  } else {
+    rec = CC.lookupCompanion(companionId);
+  }
+  if (!rec) {
+    if (CC.toast) CC.toast('Companion not found: ' + companionId);
+    return;
+  }
+  CC._compCardFlipped = false;
+  CC._compCardId = companionId;
+  overlay.innerHTML = [
+    '<div class="cc-comp-card" data-flipped="false">',
+    '<div class="cc-comp-card-inner">',
+    '<div class="cc-comp-face cc-comp-face-front">',
+    CC.renderCompanionCardFront(rec),
+    '</div>',
+    '<div class="cc-comp-face cc-comp-face-back">',
+    CC.renderCompanionCardBack(rec),
+    '</div>',
+    '</div>',
+    '</div>',
+    '<div class="cc-comp-actions">',
+    '<button class="cc-pref-btn" data-action="flipCompanion">Flip</button>',
+    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="closeOverlay">Close</button>',
+    '</div>',
+  ].join('');
+  backdrop.hidden = false;
+  overlay.hidden = false;
+};
+
+CC.flipCompanionCard = function() {
+  var card = CC.$('.cc-comp-card');
+  if (!card) return;
+  CC._compCardFlipped = !CC._compCardFlipped;
+  card.setAttribute('data-flipped', CC._compCardFlipped ? 'true' : 'false');
 };
 
 // --- Archives ---

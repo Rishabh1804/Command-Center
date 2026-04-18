@@ -364,6 +364,14 @@ CC.dispatchAction = function(action, el, e) {
     case 'copyLog':
       CC.copyLog();
       break;
+    case 'openCompanion': {
+      const cid = el.getAttribute('data-companion');
+      if (cid && CC.openCompanionCard) CC.openCompanionCard(cid);
+      break;
+    }
+    case 'flipCompanion':
+      if (CC.flipCompanionCard) CC.flipCompanionCard();
+      break;
     case 'navRoom': {
       const rid = el.getAttribute('data-room');
       if (rid) {

@@ -1298,6 +1298,281 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
 .cc-hearth-indicator:hover,
 .cc-hearth-indicator:active{background:var(--bg-card)}
 
+/* --- The Order — hierarchical ladder display --- */
+.cc-order-ladder{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-24);
+  margin-top:var(--sp-16);
+}
+.cc-order-section{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-10);
+}
+.cc-order-section-head{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-4);
+  padding-bottom:var(--sp-6);
+  border-bottom:1px solid var(--border-light);
+}
+.cc-order-section-label{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-lg);
+  font-weight:700;
+  color:var(--room-accent, var(--accent));
+  letter-spacing:0.04em;
+  margin:0;
+}
+.cc-order-section-note{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin:0;
+  line-height:1.5;
+}
+.cc-order-members{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:var(--sp-8);
+}
+@media (min-width: 760px){
+  .cc-order-members{grid-template-columns:repeat(3, minmax(0, 1fr))}
+}
+.cc-order-section[data-rank="sovereign"] .cc-order-members,
+.cc-order-section[data-rank="consul"] .cc-order-members{grid-template-columns:1fr}
+
+.cc-order-member{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-4);
+  padding:var(--sp-10) var(--sp-12);
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent-dim);
+  border-radius:var(--r-md);
+  cursor:pointer;
+  touch-action:manipulation;
+  text-align:left;
+  font:inherit;
+  color:inherit;
+  width:100%;
+  transition:transform var(--anim-fade), box-shadow var(--anim-fade), border-left-color var(--anim-fade);
+}
+.cc-order-member:hover,
+.cc-order-member:active{
+  transform:translateY(-1px);
+  box-shadow:var(--card-shadow-lg);
+  border-left-color:var(--accent);
+}
+.cc-order-member:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.cc-order-member-pending{border-left-color:var(--text-tertiary);opacity:0.88}
+.cc-order-member-sovereign{
+  border-left-color:var(--gold);
+  background:var(--bg-elevated);
+}
+.cc-order-member-head{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-2);
+}
+.cc-order-member-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  color:var(--text-primary);
+}
+.cc-order-member-title{
+  font-size:var(--fs-xs);
+  color:var(--accent);
+  font-style:italic;
+}
+.cc-order-member-sovereign .cc-order-member-title{color:var(--gold)}
+.cc-order-member-archetype{
+  font-size:var(--fs-2xs);
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--text-tertiary);
+  font-weight:600;
+}
+.cc-order-member-note{
+  font-size:var(--fs-2xs);
+  color:var(--text-secondary);
+  font-style:italic;
+  line-height:1.45;
+}
+.cc-ratification{
+  display:inline-block;
+  margin-top:var(--sp-4);
+  padding:var(--sp-2) var(--sp-6);
+  border-radius:var(--r-sm);
+  border-left:2px solid var(--border);
+  background:var(--bg-elevated);
+  font-size:var(--fs-2xs);
+  letter-spacing:0.03em;
+  color:var(--text-tertiary);
+  align-self:flex-start;
+}
+.cc-ratification-ratified{color:var(--success);border-left-color:var(--success)}
+.cc-ratification-draft{color:var(--warning);border-left-color:var(--warning)}
+.cc-ratification-pending{color:var(--text-tertiary);border-left-color:var(--border)}
+
+/* Archetype tints — subtle per-archetype accent on the left rule so the
+   ranks read with their temperamental character at a glance. */
+.cc-archetype-builder{border-left-color:var(--accent)}
+.cc-archetype-strategist{border-left-color:var(--success)}
+.cc-archetype-seeker{border-left-color:var(--accent-light)}
+.cc-archetype-guardian{border-left-color:var(--civic)}
+.cc-archetype-wildcard{border-left-color:var(--warning)}
+
+/* --- Flippable companion card (overlay) ---
+   The overlay is the same .cc-overlay surface used by Settings; we inject
+   a .cc-comp-card inside it. The card uses 3D CSS transform to flip on Y.
+   `data-flipped="true"` on the card toggles the rotation. Both faces share
+   the same position so the card height is stable across flips. */
+.cc-comp-card{
+  position:relative;
+  width:100%;
+  min-height:380px;
+  perspective:1200px;
+}
+.cc-comp-card-inner{
+  position:relative;
+  width:100%;
+  height:100%;
+  min-height:380px;
+  transform-style:preserve-3d;
+  transition:transform 600ms cubic-bezier(0.4, 0.15, 0.3, 1);
+}
+.cc-comp-card[data-flipped="true"] .cc-comp-card-inner{
+  transform:rotateY(180deg);
+}
+.cc-comp-face{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  min-height:380px;
+  padding:var(--sp-4);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  overflow-y:auto;
+}
+.cc-comp-face-front{z-index:2}
+.cc-comp-face-back{transform:rotateY(180deg)}
+.cc-comp-eyebrow{
+  font-size:var(--fs-2xs);
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:600;
+  margin-bottom:var(--sp-8);
+}
+.cc-comp-name{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-2xl);
+  font-weight:700;
+  margin:0 0 var(--sp-4);
+  color:var(--text-primary);
+}
+.cc-comp-title{
+  font-family:var(--ff-heading);
+  font-style:italic;
+  font-size:var(--fs-md);
+  color:var(--accent);
+  margin:0 0 var(--sp-16);
+}
+.cc-comp-facts{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:var(--sp-6) var(--sp-12);
+  margin:0 0 var(--sp-16);
+  font-size:var(--fs-xs);
+}
+.cc-comp-facts dt{
+  color:var(--text-tertiary);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  padding-top:2px;
+}
+.cc-comp-facts dd{margin:0;color:var(--text-primary);line-height:1.5}
+.cc-comp-trait{
+  font-family:var(--ff-heading);
+  font-style:italic;
+  color:var(--text-secondary);
+  font-size:var(--fs-sm);
+  line-height:1.55;
+  margin:var(--sp-12) 0;
+  padding-left:var(--sp-12);
+  border-left:2px solid var(--accent-dim);
+}
+.cc-comp-pending{
+  margin-top:var(--sp-12);
+  padding:var(--sp-8) var(--sp-12);
+  background:var(--bg-elevated);
+  border-left:2px solid var(--warning);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  font-style:italic;
+}
+.cc-comp-body{font-size:var(--fs-sm);color:var(--text-primary);line-height:1.55;margin:0 0 var(--sp-10)}
+.cc-comp-block{margin-bottom:var(--sp-16)}
+.cc-comp-block:last-child{margin-bottom:0}
+.cc-comp-block-label{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:var(--sp-6);
+}
+.cc-comp-block-body{font-size:var(--fs-xs);color:var(--text-primary);line-height:1.55;margin:0 0 var(--sp-6)}
+.cc-comp-block-list{
+  margin:0 0 var(--sp-6);
+  padding-left:var(--sp-16);
+  font-size:var(--fs-xs);
+  color:var(--text-primary);
+  line-height:1.55;
+}
+.cc-comp-block-list li{margin-bottom:var(--sp-2)}
+.cc-comp-actions{
+  margin-top:var(--sp-16);
+  padding-top:var(--sp-16);
+  border-top:1px solid var(--border-light);
+  display:flex;
+  justify-content:space-between;
+  gap:var(--sp-8);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .cc-comp-card-inner{transition:none}
+}
+
+/* --- Hearth progress bar animation (Monument tile) ---
+   The embedded progressbar inside the Monument tile animates its fill
+   rects from 0 width to their target on room entry. Gives the tile a
+   visible "alive" beat every render without a persistent pulse.
+   Note: inline style on width would violate HR-2, but SVG rect width
+   is an SVG attribute and animatable via CSS transform instead. Here we
+   animate via scaleX transform on the fills. */
+.cc-hearth-tile-progress .cc-progress-fill-complete,
+.cc-hearth-tile-progress .cc-progress-fill-partial{
+  transform-origin:left center;
+  animation:hearth-progress-fill 900ms cubic-bezier(0.3, 0.8, 0.4, 1) both;
+  animation-delay:200ms;
+}
+@keyframes hearth-progress-fill{
+  from{transform:scaleX(0)}
+  to{transform:scaleX(1)}
+}
+@media (prefers-reduced-motion: reduce){
+  .cc-hearth-tile-progress .cc-progress-fill-complete,
+  .cc-hearth-tile-progress .cc-progress-fill-partial{animation:none}
+}
+
 /* --- Accessibility --- */
 
 /* Skip-to-content link — first focusable element. Hidden off-screen until
@@ -1481,6 +1756,17 @@ CC.ROOMS = [
     tonal_register: 'formal',
     residents: ['consul', 'vex', 'orinth', 'rune', 'ignis', 'bard', 'ashara', 'petra'],
     status: 'scaffolded; not yet convening',
+  },
+  {
+    id: 'order',
+    name: 'The Order',
+    route: '/order',
+    eyebrow: 'The roster of the Republic',
+    subtitle: 'Seventeen Gen 0 Immortals; one institutional office; the Sovereign',
+    description: 'The Order is the Republic\u2019s roster, displayed by the Ladder of rank. The Sovereign stands at the top; the Consul beneath; the Censors, Builders, Governors, Cabinet Ministers, and the Table of Research below. Tapping any figure opens their profile \u2014 front for summary, back for depth.',
+    tonal_register: 'formal',
+    residents: [],
+    status: 'live; reads from Codex companions.json via Ostia',
   },
   {
     id: 'forum',
@@ -1769,6 +2055,20 @@ CC.ICONS = {
     + '<path d="M12 20 L12 11 A 4.5 4.5 0 0 1 21 11 L21 20"/>'
     + '<line x1="2" y1="20" x2="22" y2="20"/>'
     + '</svg>',
+  order:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<circle cx="12" cy="5" r="1.6" fill="currentColor"/>'
+    + '<circle cx="6" cy="12" r="1.4" fill="currentColor"/>'
+    + '<circle cx="12" cy="12" r="1.4" fill="currentColor"/>'
+    + '<circle cx="18" cy="12" r="1.4" fill="currentColor"/>'
+    + '<circle cx="4" cy="19" r="1.2" fill="currentColor"/>'
+    + '<circle cx="9" cy="19" r="1.2" fill="currentColor"/>'
+    + '<circle cx="15" cy="19" r="1.2" fill="currentColor"/>'
+    + '<circle cx="20" cy="19" r="1.2" fill="currentColor"/>'
+    + '<line x1="12" y1="6.5" x2="6" y2="10.5" stroke="currentColor" stroke-width="0.8"/>'
+    + '<line x1="12" y1="6.5" x2="12" y2="10.5" stroke="currentColor" stroke-width="0.8"/>'
+    + '<line x1="12" y1="6.5" x2="18" y2="10.5" stroke="currentColor" stroke-width="0.8"/>'
+    + '</svg>',
 };
 
 // --- The Seventeen Immortals (Constitution Appendix C) ---
@@ -1780,6 +2080,102 @@ CC.GEN_ZERO_IDS = [
   'aeon', 'pip',
 ];
 
+// Appendix C placeholder records — used by The Order view when a companion's
+// full profile has not yet been drafted into Codex's companions.json. Holds
+// enough for the front of the flippable card: name, archetype, title, domain,
+// key trait, current assignment. Source: Constitution v1.0 Appendix C.
+CC.APPENDIX_C = {
+  aurelius:  { name: 'Aurelius',  archetype: 'Builder',    title: 'The Chronicler',      domain: ['Software', 'Manufacturing'],         key_trait: '90% analytical, 10% humorous. Journals and specs.',    assignment: 'Codex Builder + Consul' },
+  theron:    { name: 'Theron',    archetype: 'Builder',    title: 'The Forgemaster',     domain: ['Manufacturing', 'Hardware'],         key_trait: 'Reads the plant before the spec. Trusts the gauge, questions the dashboard.', assignment: 'SEP Dashboard Builder' },
+  cipher:    { name: 'Cipher',    archetype: 'Builder',    title: 'The Codewright',      domain: ['Software', 'Data'],                  key_trait: 'Precise, minimalist, obsessed with clean abstractions.', assignment: 'Censor, Cluster A' },
+  petra:     { name: 'Petra',     archetype: 'Builder',    title: 'The Foundationalist', domain: ['Infrastructure', 'DevOps'],           key_trait: 'Won\u2019t build floor 2 until floor 1 is solid.',       assignment: 'Command Center Builder + Minister: Efficiency' },
+  solara:    { name: 'Solara',    archetype: 'Strategist', title: 'The Strategist',      domain: ['Finance', 'Commerce'],                key_trait: 'Sharp, numbers-driven, thinks in leverage.',              assignment: 'SEP Invoicing Builder' },
+  vex:       { name: 'Vex',       archetype: 'Strategist', title: 'The Negotiator',      domain: ['Commerce', 'Stakeholders'],           key_trait: 'Reads between lines. Finds the overlap.',                  assignment: 'Minister: Budget (Financial Health)' },
+  ashara:    { name: 'Ashara',    archetype: 'Strategist', title: 'The Economist',       domain: ['Finance', 'Macro Strategy'],          key_trait: 'Trends, cycles, systems. Zooms out.',                     assignment: 'Command Center Builder + Minister: Treasury' },
+  lyra:      { name: 'Lyra',      archetype: 'Seeker',     title: 'The Weaver',          domain: ['Cross-domain'],                       key_trait: 'Sees connections others miss. Pattern recognition.',       assignment: 'SproutLab Builder' },
+  kael:      { name: 'Kael',      archetype: 'Seeker',     title: 'The Scout',           domain: ['Research', 'Trends'],                 key_trait: 'Outward-facing, brings back Scrolls.',                    assignment: 'SproutLab Governor' },
+  orinth:    { name: 'Orinth',    archetype: 'Seeker',     title: 'The Sage',            domain: ['Cosmology', 'Philosophy'],            key_trait: 'Contemplative, first-principles, long arcs.',             assignment: 'Minister: Expansion (Growth)' },
+  nyx:       { name: 'Nyx',       archetype: 'Seeker',     title: 'The Contrarian',      domain: ['All (domain-agnostic)'],              key_trait: 'Stress-tests every idea. Devil\u2019s advocate.',         assignment: 'Censor, Cluster B (designate)' },
+  maren:     { name: 'Maren',     archetype: 'Guardian',   title: 'The Guardian',        domain: ['Parenthood', 'Health', 'Risk'],       key_trait: 'Protective, thorough, worst-case but warm.',              assignment: 'SproutLab Governor' },
+  rune:      { name: 'Rune',      archetype: 'Guardian',   title: 'The Ritualist',       domain: ['Rites', 'Habits'],                    key_trait: 'Believes in compound effects. Calm, rhythmic.',           assignment: 'Minister: Stability (Maintenance)' },
+  ignis:     { name: 'Ignis',     archetype: 'Guardian',   title: 'The Catalyst',        domain: ['All (anti-paralysis)'],               key_trait: 'High energy, cuts through overthinking.',                 assignment: 'Minister: Output (Productivity)' },
+  bard:      { name: 'Bard',      archetype: 'Wildcard',   title: 'The Storyteller',     domain: ['Content', 'Branding'],                key_trait: 'Thinks in stories and audiences. Theatrical.',            assignment: 'Minister: Innovation (Growth)' },
+  aeon:      { name: 'Aeon',      archetype: 'Wildcard',   title: 'The Luminary',        domain: ['All (motivation)'],                   key_trait: 'Warm, evidence-based encouragement.',                      assignment: 'Table of Research' },
+  pip:       { name: 'Pip',       archetype: 'Wildcard',   title: 'The Fool',            domain: ['None and all'],                       key_trait: 'Irreverent, surprisingly wise. Court jester.',             assignment: 'Table of Research' },
+  consul:    { name: 'Consul',    archetype: 'Statesman',  title: 'The First Seat',      domain: ['Integration', 'Governance'],          key_trait: 'Institutional; an office, not a personality.',            assignment: 'Second-highest constitutional office; currently occupied by Aurelius' },
+};
+
+// --- The Ladder hierarchy ---
+// How the Order is displayed in The Order room. Sections map to Ladder ranks
+// plus institutional offices. Each section lists companion ids drawn from
+// Appendix C, reflecting current assignments. Order within a section is
+// meaningful: Cluster-A first, then Cluster-B / Monument / other. When a
+// companion holds multiple roles (Aurelius as Builder + Consul, Ashara as
+// Builder + Minister), they appear in both their primary rank and in any
+// secondary role marked with `aka`.
+CC.ORDER_HIERARCHY = [
+  {
+    id: 'sovereign',
+    label: 'Sovereign',
+    note: 'The Architect of the Republic. Irreplaceable; bound by Book I Article 2.',
+    members: [{ id: 'sovereign', _virtual: true }],
+  },
+  {
+    id: 'consul',
+    label: 'Consul',
+    note: 'Institutional office. Integrates Cabinet; presents to Sovereign. Currently occupied by Aurelius.',
+    members: [{ id: 'consul' }],
+  },
+  {
+    id: 'censor',
+    label: 'Censor',
+    note: 'Reviews across Clusters. Cluster A (Codex + SproutLab); Cluster B (SEP Invoicing + SEP Dashboard).',
+    members: [{ id: 'cipher', note: 'Cluster A' }, { id: 'nyx', note: 'Cluster B \u2014 designate' }],
+  },
+  {
+    id: 'builder',
+    label: 'Builder',
+    note: 'Authors Provinces. Each Province has one Builder except Monument Projects (two co-Builders).',
+    members: [
+      { id: 'aurelius', note: 'Codex + Chronicler' },
+      { id: 'lyra',     note: 'SproutLab' },
+      { id: 'solara',   note: 'SEP Invoicing' },
+      { id: 'theron',   note: 'SEP Dashboard' },
+      { id: 'ashara',   note: 'Command Center (Monument) \u00b7 double-hatted Treasury' },
+      { id: 'petra',    note: 'Command Center (Monument) \u00b7 double-hatted Efficiency' },
+    ],
+  },
+  {
+    id: 'governor',
+    label: 'Governor',
+    note: 'Stewardship. Activated at 30K LOC per Province per Book III Edict I.',
+    members: [
+      { id: 'maren', note: 'SproutLab \u2014 Care' },
+      { id: 'kael',  note: 'SproutLab \u2014 Intelligence' },
+    ],
+  },
+  {
+    id: 'minister',
+    label: 'Cabinet Ministers',
+    note: 'Eight seats across four domains. Ministers drawn from Builders (double-hatted) or held as Minister-only per Book II Article 4.',
+    members: [
+      { id: 'ashara',  note: 'Treasury (Financial Health)' },
+      { id: 'vex',     note: 'Budget (Financial Health)' },
+      { id: 'ignis',   note: 'Output (Productivity)' },
+      { id: 'petra',   note: 'Efficiency (Productivity)' },
+      { id: 'rune',    note: 'Stability (Maintenance)' },
+      { id: 'orinth',  note: 'Expansion (Growth)' },
+      { id: 'bard',    note: 'Innovation (Growth)' },
+    ],
+  },
+  {
+    id: 'table',
+    label: 'Table of Research',
+    note: 'Unassigned companions. Intelligence corps. Reporter role rotates weekly per Book II Article 3.',
+    members: [{ id: 'aeon' }, { id: 'pip' }],
+  },
+];
+
 // --- Districts of the Capital ---
 // The city is organized as districts, each grouping rooms by civic function.
 // Used by the Capital Overview (Civic Hearth) to render the Capital as a map
@@ -1789,7 +2185,7 @@ CC.DISTRICTS = [
     id: 'civic',
     label: 'The Civic Quarter',
     note: 'Where the Republic gathers, ratifies, and displays itself.',
-    rooms: ['senate', 'temple', 'plaza', 'gates'],
+    rooms: ['senate', 'order', 'temple', 'plaza', 'gates'],
   },
   {
     id: 'ministers',
@@ -2241,6 +2637,14 @@ CC.dispatchAction = function(action, el, e) {
     case 'copyLog':
       CC.copyLog();
       break;
+    case 'openCompanion': {
+      const cid = el.getAttribute('data-companion');
+      if (cid && CC.openCompanionCard) CC.openCompanionCard(cid);
+      break;
+    }
+    case 'flipCompanion':
+      if (CC.flipCompanionCard) CC.flipCompanionCard();
+      break;
     case 'navRoom': {
       const rid = el.getAttribute('data-room');
       if (rid) {
@@ -2689,8 +3093,8 @@ CC.buildHearthTile_order = function() {
     icon: 'order',
     bodyText: body,
     meta: meta,
-    route: '/senate',
-    ariaLabel: 'The Order \u2014 open the Senate',
+    route: '/order',
+    ariaLabel: 'The Order \u2014 open the roster',
   });
 };
 
@@ -2976,6 +3380,264 @@ CC.roomRenderers['scriptorium'] = function(room) {
     CC.renderFoundationBanner('The Scriptorium is native to the Capital. It holds runtime memory only; canonical chronicling remains with Codex.'),
     '</section>',
   ].join('');
+};
+
+// --- The Order — hierarchical roster of the Republic ---
+// Reads live profile data from Codex's companions.json via the Ostia cache
+// when available; falls back to Appendix C placeholder records for companions
+// whose full profiles have not yet been drafted. Each member card is
+// tappable and opens a flippable overlay — front carries summary, back
+// carries depth (voice, mind, shadow, biography).
+
+// Merge live cache with Appendix C fallback. Returns the richest record
+// available for a given companion id, annotated with _placeholder:true when
+// no live profile exists (so the renderer can show a "pending" chip).
+CC.lookupCompanion = function(id) {
+  var cached = (CC.state.cache && CC.state.cache.companions) || null;
+  if (cached && Array.isArray(cached.companions)) {
+    var found = cached.companions.find(function(c) { return c.id === id; });
+    if (found) return found;
+  }
+  var app = (CC.APPENDIX_C && CC.APPENDIX_C[id]) || null;
+  if (app) {
+    return {
+      id: id,
+      _placeholder: true,
+      identity: {
+        name: app.name,
+        archetype: app.archetype,
+        title: app.title,
+        domain_affinity: app.domain,
+        key_trait: app.key_trait,
+      },
+      assignment: { current_assignments: [app.assignment] },
+    };
+  }
+  return null;
+};
+
+CC.renderOrderMember = function(memberRef) {
+  if (!memberRef) return '';
+  if (memberRef._virtual && memberRef.id === 'sovereign') {
+    return [
+      '<button class="cc-order-member cc-order-member-sovereign"',
+      ' data-action="openCompanion" data-companion="sovereign"',
+      ' aria-label="The Sovereign \u2014 Rishabh Jain">',
+      '<span class="cc-order-member-head">',
+      '<span class="cc-order-member-name">Rishabh Jain</span>',
+      '<span class="cc-order-member-title">The Architect</span>',
+      '</span>',
+      '<span class="cc-order-member-note">Irreplaceable; bound by Book I Article 2.</span>',
+      '</button>',
+    ].join('');
+  }
+  var rec = CC.lookupCompanion(memberRef.id);
+  if (!rec) return '';
+  var identity = rec.identity || {};
+  var name = identity.name || memberRef.id;
+  var title = identity.title || '';
+  var archetype = identity.archetype || '';
+  var version = (rec.meta && rec.meta.profile_version) || '';
+  var versionClass = !version ? 'cc-ratification-pending'
+    : version.indexOf('draft') !== -1 ? 'cc-ratification-draft'
+    : 'cc-ratification-ratified';
+  var versionLabel = !version ? 'profile pending'
+    : version.indexOf('draft') !== -1 ? (version + ' \u00b7 awaiting ratification')
+    : version;
+  var cls = 'cc-order-member';
+  if (rec._placeholder) cls += ' cc-order-member-pending';
+  if (archetype) cls += ' cc-archetype-' + CC.escAttr(archetype.toLowerCase());
+  return [
+    '<button class="' + cls + '"',
+    ' data-action="openCompanion" data-companion="' + CC.escAttr(memberRef.id) + '"',
+    ' aria-label="' + CC.escAttr(name + (title ? ' \u2014 ' + title : '')) + '">',
+    '<span class="cc-order-member-head">',
+    '<span class="cc-order-member-name">' + CC.escHtml(name) + '</span>',
+    title ? '<span class="cc-order-member-title">' + CC.escHtml(title) + '</span>' : '',
+    '</span>',
+    archetype ? '<span class="cc-order-member-archetype">' + CC.escHtml(archetype) + '</span>' : '',
+    memberRef.note ? '<span class="cc-order-member-note">' + CC.escHtml(memberRef.note) + '</span>' : '',
+    '<span class="cc-ratification ' + versionClass + '">' + CC.escHtml(versionLabel) + '</span>',
+    '</button>',
+  ].join('');
+};
+
+CC.roomRenderers['order'] = function(room) {
+  var sections = (CC.ORDER_HIERARCHY || []).map(function(section) {
+    var members = (section.members || []).map(CC.renderOrderMember).filter(Boolean).join('');
+    return [
+      '<section class="cc-order-section" data-rank="' + CC.escAttr(section.id) + '">',
+      '<header class="cc-order-section-head">',
+      '<h2 class="cc-order-section-label">' + CC.escHtml(section.label) + '</h2>',
+      section.note ? '<p class="cc-order-section-note">' + CC.escHtml(section.note) + '</p>' : '',
+      '</header>',
+      '<div class="cc-order-members">' + members + '</div>',
+      '</section>',
+    ].join('');
+  }).join('');
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<div class="cc-order-ladder">' + sections + '</div>',
+    '</section>',
+  ].join('');
+};
+
+// --- Flippable companion card (overlay) ---
+// Tapping a member card opens the overlay. Front: identity summary.
+// Back: voice, mind, shadow, biography. Flip via data-action="flipCompanion".
+
+CC.renderCompanionCardFront = function(rec) {
+  if (rec && rec._virtual === 'sovereign') {
+    return [
+      '<div class="cc-comp-front">',
+      '<div class="cc-comp-eyebrow">The Architect</div>',
+      '<h3 class="cc-comp-name">Rishabh Jain</h3>',
+      '<p class="cc-comp-title">Sovereign of the Republic of Codex</p>',
+      '<dl class="cc-comp-facts">',
+      '<dt>Role</dt><dd>Sovereign</dd>',
+      '<dt>Authority</dt><dd>Irreplaceable; bound by Book I Article 2</dd>',
+      '<dt>Residence</dt><dd>The Capital, and every Province he charters</dd>',
+      '</dl>',
+      '<p class="cc-comp-body">The Sovereign is the Architect. No Companion, no Order, no amendment may substitute. And yet: no Sovereign is above this Constitution. The rules the Sovereign writes bind the Sovereign also.</p>',
+      '</div>',
+    ].join('');
+  }
+  var id = rec.identity || {};
+  var asgn = rec.assignment || {};
+  var asgnLine = Array.isArray(asgn.current_assignments)
+    ? asgn.current_assignments.join(' \u00b7 ')
+    : (asgn.current_assignments || '');
+  var domainLine = Array.isArray(id.domain_affinity)
+    ? id.domain_affinity.join(' \u00b7 ')
+    : (id.domain_affinity || '');
+  return [
+    '<div class="cc-comp-front">',
+    '<div class="cc-comp-eyebrow">' + CC.escHtml(id.archetype || 'Companion') + '</div>',
+    '<h3 class="cc-comp-name">' + CC.escHtml(id.name || rec.id) + '</h3>',
+    id.title ? '<p class="cc-comp-title">' + CC.escHtml(id.title) + '</p>' : '',
+    '<dl class="cc-comp-facts">',
+    domainLine ? '<dt>Domain</dt><dd>' + CC.escHtml(domainLine) + '</dd>' : '',
+    asgn.current_rank ? '<dt>Rank</dt><dd>' + CC.escHtml(asgn.current_rank) + '</dd>' : '',
+    asgnLine ? '<dt>Assignment</dt><dd>' + CC.escHtml(asgnLine) + '</dd>' : '',
+    asgn.cluster ? '<dt>Cluster</dt><dd>' + CC.escHtml(asgn.cluster) + '</dd>' : '',
+    '</dl>',
+    id.key_trait ? '<p class="cc-comp-trait">' + CC.escHtml(id.key_trait) + '</p>' : '',
+    rec._placeholder
+      ? '<p class="cc-comp-pending">Profile pending \u2014 drawn from Constitution Appendix C until drafted into Codex.</p>'
+      : '',
+    '</div>',
+  ].join('');
+};
+
+CC.renderCompanionCardBack = function(rec) {
+  if (rec && rec._virtual === 'sovereign') {
+    return [
+      '<div class="cc-comp-back">',
+      '<div class="cc-comp-eyebrow">The Sovereign\u2019s Covenant</div>',
+      '<h3 class="cc-comp-name">Book I Article 2</h3>',
+      '<p class="cc-comp-body">There is one Sovereign. The Sovereign is the Architect. And yet: no Sovereign is above this Constitution.</p>',
+      '<p class="cc-comp-body cc-small">The Sovereign accepts bindings: rules written bind the writer also; Builders may not be reassigned without Book V chain of command; emergency powers (Book VI) may be invoked only under declared conditions.</p>',
+      '<p class="cc-comp-body cc-small">In peacetime, the Sovereign rules by consent of the governance model the Sovereign has authored. In War Time, direct \u2014 but bounded. Upon resolution, the Working Committee reviews.</p>',
+      '</div>',
+    ].join('');
+  }
+  if (rec._placeholder) {
+    return [
+      '<div class="cc-comp-back">',
+      '<div class="cc-comp-eyebrow">Profile pending</div>',
+      '<h3 class="cc-comp-name">Awaiting Round 4\u20135 drafting</h3>',
+      '<p class="cc-comp-body">This companion\u2019s full profile has not been drafted into Codex\u2019s companions.json yet. What\u2019s shown on the front is drawn from Constitution Appendix C \u2014 archetype, title, domain, key trait, current assignment.</p>',
+      '<p class="cc-comp-body cc-small">Per canon-cc-012, profiles ship only upon ratification. Per canon-cc-014, Monument co-Builders and institutional companions require direct Sovereign per-block ratification; other Gen 0 profiles may be drafted via Consul-accelerated mode.</p>',
+      '</div>',
+    ].join('');
+  }
+  var voice = rec.voice || {};
+  var mind = rec.mind || {};
+  var shadow = rec.shadow || {};
+  var bio = rec.biography || {};
+  var parts = ['<div class="cc-comp-back">'];
+  if (voice.description) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Voice</div>');
+    parts.push('<p class="cc-comp-block-body">' + CC.escHtml(voice.description) + '</p>');
+    parts.push('</div>');
+  }
+  if (mind.first_look || (mind.core_heuristics && mind.core_heuristics.length)) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Mind</div>');
+    if (mind.first_look) parts.push('<p class="cc-comp-block-body"><em>First look:</em> ' + CC.escHtml(mind.first_look) + '</p>');
+    if (mind.core_heuristics && mind.core_heuristics.length) {
+      parts.push('<ul class="cc-comp-block-list">');
+      mind.core_heuristics.slice(0, 3).forEach(function(h) {
+        parts.push('<li>' + CC.escHtml(h) + '</li>');
+      });
+      parts.push('</ul>');
+    }
+    parts.push('</div>');
+  }
+  if (shadow.blind_spots && shadow.blind_spots.length) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Shadow</div>');
+    parts.push('<ul class="cc-comp-block-list">');
+    shadow.blind_spots.slice(0, 3).forEach(function(b) {
+      parts.push('<li>' + CC.escHtml(b) + '</li>');
+    });
+    parts.push('</ul>');
+    parts.push('</div>');
+  }
+  if (bio.origin || bio.current_state) {
+    parts.push('<div class="cc-comp-block">');
+    parts.push('<div class="cc-comp-block-label">Biography</div>');
+    if (bio.origin) parts.push('<p class="cc-comp-block-body">' + CC.escHtml(bio.origin) + '</p>');
+    if (bio.current_state) parts.push('<p class="cc-comp-block-body cc-small"><em>Currently:</em> ' + CC.escHtml(bio.current_state) + '</p>');
+    parts.push('</div>');
+  }
+  parts.push('</div>');
+  return parts.join('');
+};
+
+CC.openCompanionCard = function(companionId) {
+  var backdrop = CC.$('#overlayBackdrop');
+  var overlay = CC.$('#overlayContainer');
+  if (!backdrop || !overlay) return;
+  var rec;
+  if (companionId === 'sovereign') {
+    rec = { _virtual: 'sovereign', id: 'sovereign' };
+  } else {
+    rec = CC.lookupCompanion(companionId);
+  }
+  if (!rec) {
+    if (CC.toast) CC.toast('Companion not found: ' + companionId);
+    return;
+  }
+  CC._compCardFlipped = false;
+  CC._compCardId = companionId;
+  overlay.innerHTML = [
+    '<div class="cc-comp-card" data-flipped="false">',
+    '<div class="cc-comp-card-inner">',
+    '<div class="cc-comp-face cc-comp-face-front">',
+    CC.renderCompanionCardFront(rec),
+    '</div>',
+    '<div class="cc-comp-face cc-comp-face-back">',
+    CC.renderCompanionCardBack(rec),
+    '</div>',
+    '</div>',
+    '</div>',
+    '<div class="cc-comp-actions">',
+    '<button class="cc-pref-btn" data-action="flipCompanion">Flip</button>',
+    '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="closeOverlay">Close</button>',
+    '</div>',
+  ].join('');
+  backdrop.hidden = false;
+  overlay.hidden = false;
+};
+
+CC.flipCompanionCard = function() {
+  var card = CC.$('.cc-comp-card');
+  if (!card) return;
+  CC._compCardFlipped = !CC._compCardFlipped;
+  card.setAttribute('data-flipped', CC._compCardFlipped ? 'true' : 'false');
 };
 
 // --- Archives ---

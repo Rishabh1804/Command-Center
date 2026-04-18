@@ -86,6 +86,17 @@ CC.ROOMS = [
     status: 'scaffolded; not yet convening',
   },
   {
+    id: 'order',
+    name: 'The Order',
+    route: '/order',
+    eyebrow: 'The roster of the Republic',
+    subtitle: 'Seventeen Gen 0 Immortals; one institutional office; the Sovereign',
+    description: 'The Order is the Republic\u2019s roster, displayed by the Ladder of rank. The Sovereign stands at the top; the Consul beneath; the Censors, Builders, Governors, Cabinet Ministers, and the Table of Research below. Tapping any figure opens their profile \u2014 front for summary, back for depth.',
+    tonal_register: 'formal',
+    residents: [],
+    status: 'live; reads from Codex companions.json via Ostia',
+  },
+  {
     id: 'forum',
     name: 'The Forum',
     route: '/forum',
@@ -372,6 +383,20 @@ CC.ICONS = {
     + '<path d="M12 20 L12 11 A 4.5 4.5 0 0 1 21 11 L21 20"/>'
     + '<line x1="2" y1="20" x2="22" y2="20"/>'
     + '</svg>',
+  order:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<circle cx="12" cy="5" r="1.6" fill="currentColor"/>'
+    + '<circle cx="6" cy="12" r="1.4" fill="currentColor"/>'
+    + '<circle cx="12" cy="12" r="1.4" fill="currentColor"/>'
+    + '<circle cx="18" cy="12" r="1.4" fill="currentColor"/>'
+    + '<circle cx="4" cy="19" r="1.2" fill="currentColor"/>'
+    + '<circle cx="9" cy="19" r="1.2" fill="currentColor"/>'
+    + '<circle cx="15" cy="19" r="1.2" fill="currentColor"/>'
+    + '<circle cx="20" cy="19" r="1.2" fill="currentColor"/>'
+    + '<line x1="12" y1="6.5" x2="6" y2="10.5" stroke="currentColor" stroke-width="0.8"/>'
+    + '<line x1="12" y1="6.5" x2="12" y2="10.5" stroke="currentColor" stroke-width="0.8"/>'
+    + '<line x1="12" y1="6.5" x2="18" y2="10.5" stroke="currentColor" stroke-width="0.8"/>'
+    + '</svg>',
 };
 
 // --- The Seventeen Immortals (Constitution Appendix C) ---
@@ -383,6 +408,102 @@ CC.GEN_ZERO_IDS = [
   'aeon', 'pip',
 ];
 
+// Appendix C placeholder records — used by The Order view when a companion's
+// full profile has not yet been drafted into Codex's companions.json. Holds
+// enough for the front of the flippable card: name, archetype, title, domain,
+// key trait, current assignment. Source: Constitution v1.0 Appendix C.
+CC.APPENDIX_C = {
+  aurelius:  { name: 'Aurelius',  archetype: 'Builder',    title: 'The Chronicler',      domain: ['Software', 'Manufacturing'],         key_trait: '90% analytical, 10% humorous. Journals and specs.',    assignment: 'Codex Builder + Consul' },
+  theron:    { name: 'Theron',    archetype: 'Builder',    title: 'The Forgemaster',     domain: ['Manufacturing', 'Hardware'],         key_trait: 'Reads the plant before the spec. Trusts the gauge, questions the dashboard.', assignment: 'SEP Dashboard Builder' },
+  cipher:    { name: 'Cipher',    archetype: 'Builder',    title: 'The Codewright',      domain: ['Software', 'Data'],                  key_trait: 'Precise, minimalist, obsessed with clean abstractions.', assignment: 'Censor, Cluster A' },
+  petra:     { name: 'Petra',     archetype: 'Builder',    title: 'The Foundationalist', domain: ['Infrastructure', 'DevOps'],           key_trait: 'Won\u2019t build floor 2 until floor 1 is solid.',       assignment: 'Command Center Builder + Minister: Efficiency' },
+  solara:    { name: 'Solara',    archetype: 'Strategist', title: 'The Strategist',      domain: ['Finance', 'Commerce'],                key_trait: 'Sharp, numbers-driven, thinks in leverage.',              assignment: 'SEP Invoicing Builder' },
+  vex:       { name: 'Vex',       archetype: 'Strategist', title: 'The Negotiator',      domain: ['Commerce', 'Stakeholders'],           key_trait: 'Reads between lines. Finds the overlap.',                  assignment: 'Minister: Budget (Financial Health)' },
+  ashara:    { name: 'Ashara',    archetype: 'Strategist', title: 'The Economist',       domain: ['Finance', 'Macro Strategy'],          key_trait: 'Trends, cycles, systems. Zooms out.',                     assignment: 'Command Center Builder + Minister: Treasury' },
+  lyra:      { name: 'Lyra',      archetype: 'Seeker',     title: 'The Weaver',          domain: ['Cross-domain'],                       key_trait: 'Sees connections others miss. Pattern recognition.',       assignment: 'SproutLab Builder' },
+  kael:      { name: 'Kael',      archetype: 'Seeker',     title: 'The Scout',           domain: ['Research', 'Trends'],                 key_trait: 'Outward-facing, brings back Scrolls.',                    assignment: 'SproutLab Governor' },
+  orinth:    { name: 'Orinth',    archetype: 'Seeker',     title: 'The Sage',            domain: ['Cosmology', 'Philosophy'],            key_trait: 'Contemplative, first-principles, long arcs.',             assignment: 'Minister: Expansion (Growth)' },
+  nyx:       { name: 'Nyx',       archetype: 'Seeker',     title: 'The Contrarian',      domain: ['All (domain-agnostic)'],              key_trait: 'Stress-tests every idea. Devil\u2019s advocate.',         assignment: 'Censor, Cluster B (designate)' },
+  maren:     { name: 'Maren',     archetype: 'Guardian',   title: 'The Guardian',        domain: ['Parenthood', 'Health', 'Risk'],       key_trait: 'Protective, thorough, worst-case but warm.',              assignment: 'SproutLab Governor' },
+  rune:      { name: 'Rune',      archetype: 'Guardian',   title: 'The Ritualist',       domain: ['Rites', 'Habits'],                    key_trait: 'Believes in compound effects. Calm, rhythmic.',           assignment: 'Minister: Stability (Maintenance)' },
+  ignis:     { name: 'Ignis',     archetype: 'Guardian',   title: 'The Catalyst',        domain: ['All (anti-paralysis)'],               key_trait: 'High energy, cuts through overthinking.',                 assignment: 'Minister: Output (Productivity)' },
+  bard:      { name: 'Bard',      archetype: 'Wildcard',   title: 'The Storyteller',     domain: ['Content', 'Branding'],                key_trait: 'Thinks in stories and audiences. Theatrical.',            assignment: 'Minister: Innovation (Growth)' },
+  aeon:      { name: 'Aeon',      archetype: 'Wildcard',   title: 'The Luminary',        domain: ['All (motivation)'],                   key_trait: 'Warm, evidence-based encouragement.',                      assignment: 'Table of Research' },
+  pip:       { name: 'Pip',       archetype: 'Wildcard',   title: 'The Fool',            domain: ['None and all'],                       key_trait: 'Irreverent, surprisingly wise. Court jester.',             assignment: 'Table of Research' },
+  consul:    { name: 'Consul',    archetype: 'Statesman',  title: 'The First Seat',      domain: ['Integration', 'Governance'],          key_trait: 'Institutional; an office, not a personality.',            assignment: 'Second-highest constitutional office; currently occupied by Aurelius' },
+};
+
+// --- The Ladder hierarchy ---
+// How the Order is displayed in The Order room. Sections map to Ladder ranks
+// plus institutional offices. Each section lists companion ids drawn from
+// Appendix C, reflecting current assignments. Order within a section is
+// meaningful: Cluster-A first, then Cluster-B / Monument / other. When a
+// companion holds multiple roles (Aurelius as Builder + Consul, Ashara as
+// Builder + Minister), they appear in both their primary rank and in any
+// secondary role marked with `aka`.
+CC.ORDER_HIERARCHY = [
+  {
+    id: 'sovereign',
+    label: 'Sovereign',
+    note: 'The Architect of the Republic. Irreplaceable; bound by Book I Article 2.',
+    members: [{ id: 'sovereign', _virtual: true }],
+  },
+  {
+    id: 'consul',
+    label: 'Consul',
+    note: 'Institutional office. Integrates Cabinet; presents to Sovereign. Currently occupied by Aurelius.',
+    members: [{ id: 'consul' }],
+  },
+  {
+    id: 'censor',
+    label: 'Censor',
+    note: 'Reviews across Clusters. Cluster A (Codex + SproutLab); Cluster B (SEP Invoicing + SEP Dashboard).',
+    members: [{ id: 'cipher', note: 'Cluster A' }, { id: 'nyx', note: 'Cluster B \u2014 designate' }],
+  },
+  {
+    id: 'builder',
+    label: 'Builder',
+    note: 'Authors Provinces. Each Province has one Builder except Monument Projects (two co-Builders).',
+    members: [
+      { id: 'aurelius', note: 'Codex + Chronicler' },
+      { id: 'lyra',     note: 'SproutLab' },
+      { id: 'solara',   note: 'SEP Invoicing' },
+      { id: 'theron',   note: 'SEP Dashboard' },
+      { id: 'ashara',   note: 'Command Center (Monument) \u00b7 double-hatted Treasury' },
+      { id: 'petra',    note: 'Command Center (Monument) \u00b7 double-hatted Efficiency' },
+    ],
+  },
+  {
+    id: 'governor',
+    label: 'Governor',
+    note: 'Stewardship. Activated at 30K LOC per Province per Book III Edict I.',
+    members: [
+      { id: 'maren', note: 'SproutLab \u2014 Care' },
+      { id: 'kael',  note: 'SproutLab \u2014 Intelligence' },
+    ],
+  },
+  {
+    id: 'minister',
+    label: 'Cabinet Ministers',
+    note: 'Eight seats across four domains. Ministers drawn from Builders (double-hatted) or held as Minister-only per Book II Article 4.',
+    members: [
+      { id: 'ashara',  note: 'Treasury (Financial Health)' },
+      { id: 'vex',     note: 'Budget (Financial Health)' },
+      { id: 'ignis',   note: 'Output (Productivity)' },
+      { id: 'petra',   note: 'Efficiency (Productivity)' },
+      { id: 'rune',    note: 'Stability (Maintenance)' },
+      { id: 'orinth',  note: 'Expansion (Growth)' },
+      { id: 'bard',    note: 'Innovation (Growth)' },
+    ],
+  },
+  {
+    id: 'table',
+    label: 'Table of Research',
+    note: 'Unassigned companions. Intelligence corps. Reporter role rotates weekly per Book II Article 3.',
+    members: [{ id: 'aeon' }, { id: 'pip' }],
+  },
+];
+
 // --- Districts of the Capital ---
 // The city is organized as districts, each grouping rooms by civic function.
 // Used by the Capital Overview (Civic Hearth) to render the Capital as a map
@@ -392,7 +513,7 @@ CC.DISTRICTS = [
     id: 'civic',
     label: 'The Civic Quarter',
     note: 'Where the Republic gathers, ratifies, and displays itself.',
-    rooms: ['senate', 'temple', 'plaza', 'gates'],
+    rooms: ['senate', 'order', 'temple', 'plaza', 'gates'],
   },
   {
     id: 'ministers',

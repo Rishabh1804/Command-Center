@@ -1220,6 +1220,281 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
 .cc-hearth-indicator:hover,
 .cc-hearth-indicator:active{background:var(--bg-card)}
 
+/* --- The Order — hierarchical ladder display --- */
+.cc-order-ladder{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-24);
+  margin-top:var(--sp-16);
+}
+.cc-order-section{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-10);
+}
+.cc-order-section-head{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-4);
+  padding-bottom:var(--sp-6);
+  border-bottom:1px solid var(--border-light);
+}
+.cc-order-section-label{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-lg);
+  font-weight:700;
+  color:var(--room-accent, var(--accent));
+  letter-spacing:0.04em;
+  margin:0;
+}
+.cc-order-section-note{
+  font-size:var(--fs-xs);
+  color:var(--text-tertiary);
+  font-style:italic;
+  margin:0;
+  line-height:1.5;
+}
+.cc-order-members{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:var(--sp-8);
+}
+@media (min-width: 760px){
+  .cc-order-members{grid-template-columns:repeat(3, minmax(0, 1fr))}
+}
+.cc-order-section[data-rank="sovereign"] .cc-order-members,
+.cc-order-section[data-rank="consul"] .cc-order-members{grid-template-columns:1fr}
+
+.cc-order-member{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-4);
+  padding:var(--sp-10) var(--sp-12);
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent-dim);
+  border-radius:var(--r-md);
+  cursor:pointer;
+  touch-action:manipulation;
+  text-align:left;
+  font:inherit;
+  color:inherit;
+  width:100%;
+  transition:transform var(--anim-fade), box-shadow var(--anim-fade), border-left-color var(--anim-fade);
+}
+.cc-order-member:hover,
+.cc-order-member:active{
+  transform:translateY(-1px);
+  box-shadow:var(--card-shadow-lg);
+  border-left-color:var(--accent);
+}
+.cc-order-member:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.cc-order-member-pending{border-left-color:var(--text-tertiary);opacity:0.88}
+.cc-order-member-sovereign{
+  border-left-color:var(--gold);
+  background:var(--bg-elevated);
+}
+.cc-order-member-head{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-2);
+}
+.cc-order-member-name{
+  font-family:var(--ff-heading);
+  font-weight:700;
+  font-size:var(--fs-md);
+  color:var(--text-primary);
+}
+.cc-order-member-title{
+  font-size:var(--fs-xs);
+  color:var(--accent);
+  font-style:italic;
+}
+.cc-order-member-sovereign .cc-order-member-title{color:var(--gold)}
+.cc-order-member-archetype{
+  font-size:var(--fs-2xs);
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--text-tertiary);
+  font-weight:600;
+}
+.cc-order-member-note{
+  font-size:var(--fs-2xs);
+  color:var(--text-secondary);
+  font-style:italic;
+  line-height:1.45;
+}
+.cc-ratification{
+  display:inline-block;
+  margin-top:var(--sp-4);
+  padding:var(--sp-2) var(--sp-6);
+  border-radius:var(--r-sm);
+  border-left:2px solid var(--border);
+  background:var(--bg-elevated);
+  font-size:var(--fs-2xs);
+  letter-spacing:0.03em;
+  color:var(--text-tertiary);
+  align-self:flex-start;
+}
+.cc-ratification-ratified{color:var(--success);border-left-color:var(--success)}
+.cc-ratification-draft{color:var(--warning);border-left-color:var(--warning)}
+.cc-ratification-pending{color:var(--text-tertiary);border-left-color:var(--border)}
+
+/* Archetype tints — subtle per-archetype accent on the left rule so the
+   ranks read with their temperamental character at a glance. */
+.cc-archetype-builder{border-left-color:var(--accent)}
+.cc-archetype-strategist{border-left-color:var(--success)}
+.cc-archetype-seeker{border-left-color:var(--accent-light)}
+.cc-archetype-guardian{border-left-color:var(--civic)}
+.cc-archetype-wildcard{border-left-color:var(--warning)}
+
+/* --- Flippable companion card (overlay) ---
+   The overlay is the same .cc-overlay surface used by Settings; we inject
+   a .cc-comp-card inside it. The card uses 3D CSS transform to flip on Y.
+   `data-flipped="true"` on the card toggles the rotation. Both faces share
+   the same position so the card height is stable across flips. */
+.cc-comp-card{
+  position:relative;
+  width:100%;
+  min-height:380px;
+  perspective:1200px;
+}
+.cc-comp-card-inner{
+  position:relative;
+  width:100%;
+  height:100%;
+  min-height:380px;
+  transform-style:preserve-3d;
+  transition:transform 600ms cubic-bezier(0.4, 0.15, 0.3, 1);
+}
+.cc-comp-card[data-flipped="true"] .cc-comp-card-inner{
+  transform:rotateY(180deg);
+}
+.cc-comp-face{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  min-height:380px;
+  padding:var(--sp-4);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  overflow-y:auto;
+}
+.cc-comp-face-front{z-index:2}
+.cc-comp-face-back{transform:rotateY(180deg)}
+.cc-comp-eyebrow{
+  font-size:var(--fs-2xs);
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:600;
+  margin-bottom:var(--sp-8);
+}
+.cc-comp-name{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-2xl);
+  font-weight:700;
+  margin:0 0 var(--sp-4);
+  color:var(--text-primary);
+}
+.cc-comp-title{
+  font-family:var(--ff-heading);
+  font-style:italic;
+  font-size:var(--fs-md);
+  color:var(--accent);
+  margin:0 0 var(--sp-16);
+}
+.cc-comp-facts{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:var(--sp-6) var(--sp-12);
+  margin:0 0 var(--sp-16);
+  font-size:var(--fs-xs);
+}
+.cc-comp-facts dt{
+  color:var(--text-tertiary);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  padding-top:2px;
+}
+.cc-comp-facts dd{margin:0;color:var(--text-primary);line-height:1.5}
+.cc-comp-trait{
+  font-family:var(--ff-heading);
+  font-style:italic;
+  color:var(--text-secondary);
+  font-size:var(--fs-sm);
+  line-height:1.55;
+  margin:var(--sp-12) 0;
+  padding-left:var(--sp-12);
+  border-left:2px solid var(--accent-dim);
+}
+.cc-comp-pending{
+  margin-top:var(--sp-12);
+  padding:var(--sp-8) var(--sp-12);
+  background:var(--bg-elevated);
+  border-left:2px solid var(--warning);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  font-style:italic;
+}
+.cc-comp-body{font-size:var(--fs-sm);color:var(--text-primary);line-height:1.55;margin:0 0 var(--sp-10)}
+.cc-comp-block{margin-bottom:var(--sp-16)}
+.cc-comp-block:last-child{margin-bottom:0}
+.cc-comp-block-label{
+  font-family:var(--ff-heading);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:var(--sp-6);
+}
+.cc-comp-block-body{font-size:var(--fs-xs);color:var(--text-primary);line-height:1.55;margin:0 0 var(--sp-6)}
+.cc-comp-block-list{
+  margin:0 0 var(--sp-6);
+  padding-left:var(--sp-16);
+  font-size:var(--fs-xs);
+  color:var(--text-primary);
+  line-height:1.55;
+}
+.cc-comp-block-list li{margin-bottom:var(--sp-2)}
+.cc-comp-actions{
+  margin-top:var(--sp-16);
+  padding-top:var(--sp-16);
+  border-top:1px solid var(--border-light);
+  display:flex;
+  justify-content:space-between;
+  gap:var(--sp-8);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .cc-comp-card-inner{transition:none}
+}
+
+/* --- Hearth progress bar animation (Monument tile) ---
+   The embedded progressbar inside the Monument tile animates its fill
+   rects from 0 width to their target on room entry. Gives the tile a
+   visible "alive" beat every render without a persistent pulse.
+   Note: inline style on width would violate HR-2, but SVG rect width
+   is an SVG attribute and animatable via CSS transform instead. Here we
+   animate via scaleX transform on the fills. */
+.cc-hearth-tile-progress .cc-progress-fill-complete,
+.cc-hearth-tile-progress .cc-progress-fill-partial{
+  transform-origin:left center;
+  animation:hearth-progress-fill 900ms cubic-bezier(0.3, 0.8, 0.4, 1) both;
+  animation-delay:200ms;
+}
+@keyframes hearth-progress-fill{
+  from{transform:scaleX(0)}
+  to{transform:scaleX(1)}
+}
+@media (prefers-reduced-motion: reduce){
+  .cc-hearth-tile-progress .cc-progress-fill-complete,
+  .cc-hearth-tile-progress .cc-progress-fill-partial{animation:none}
+}
+
 /* --- Accessibility --- */
 
 /* Skip-to-content link — first focusable element. Hidden off-screen until

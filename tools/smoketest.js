@@ -23,6 +23,7 @@ const INDEX_URL = 'file://' + path.join(REPO_ROOT, 'index.html');
 const ROUTES = [
   '#/',
   '#/senate',
+  '#/order',
   '#/forum',
   '#/archives',
   '#/scriptorium',
@@ -184,6 +185,33 @@ async function main() {
   }));
   assert(templeOverflow.scroll <= templeOverflow.inner,
     'Temple no horizontal overflow at Large (scrollWidth=' + templeOverflow.scroll + ', innerWidth=' + templeOverflow.inner + ')');
+
+  // The Order — hierarchy + flippable card
+  console.log('\n=== The Order ===');
+  await page.evaluate(() => { window.location.hash = '#/order'; });
+  await page.waitForTimeout(100);
+  const orderSections = await page.$$('.cc-order-section');
+  assert(orderSections.length === 7,
+    'Order renders 7 hierarchy sections (got ' + orderSections.length + ')');
+  const sovereignMember = await page.$('.cc-order-member-sovereign');
+  assert(!!sovereignMember, 'Sovereign card present at top of Order');
+  const orderMembers = await page.$$('.cc-order-member');
+  assert(orderMembers.length >= 18,
+    'Order shows 18+ member cards (Sovereign + 17 Gen 0, some shown twice for dual roles) (got ' + orderMembers.length + ')');
+  // Open a companion card and verify flippability
+  await page.click('.cc-order-member[data-companion="ashara"]');
+  await page.waitForTimeout(100);
+  const compCard = await page.$('.cc-comp-card[data-flipped="false"]');
+  assert(!!compCard, 'Companion card overlay opens for Ashara');
+  const compName = await page.$('.cc-comp-name');
+  assert(!!compName, 'Companion card carries a name');
+  // Flip it
+  await page.click('[data-action="flipCompanion"]');
+  await page.waitForTimeout(100);
+  const compFlipped = await page.$('.cc-comp-card[data-flipped="true"]');
+  assert(!!compFlipped, 'Companion card flips on action');
+  await page.click('[data-action="closeOverlay"]');
+  await page.waitForTimeout(40);
 
   // Accessibility surface checks
   console.log('\n=== Accessibility ===');
