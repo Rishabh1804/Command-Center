@@ -720,57 +720,133 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   line-height:1.5;
 }
 
-.cc-hearth-cards{
+/* Hearth tiles — the Capital's bulletin wall. Six live surfaces rendered in
+   a 2-column grid on phone, 3-column on wider viewports. Each tile is a
+   tappable civic signal with icon, label, body, and meta. Fresh items
+   (< 24h) get a subtle accent glow to indicate recent activity. Staggered
+   fade-in animation on render so the Hearth blooms rather than appears. */
+.cc-hearth-tiles{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-  gap:var(--sp-12);
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:var(--sp-10);
   margin-bottom:var(--sp-32);
 }
-.cc-hearth-card{
+@media (min-width: 760px){
+  .cc-hearth-tiles{grid-template-columns:repeat(3, minmax(0, 1fr))}
+}
+.cc-hearth-tile{
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-6);
   background:var(--bg-card);
   border:1px solid var(--border);
-  border-top:3px solid var(--accent);
+  border-top:3px solid var(--accent-dim);
   border-radius:var(--r-md);
-  padding:var(--sp-16);
+  padding:var(--sp-12) var(--sp-14, var(--sp-12));
   cursor:pointer;
   touch-action:manipulation;
   text-align:left;
   font:inherit;
   color:inherit;
   width:100%;
-  display:block;
+  min-height:132px;
   transition:transform var(--anim-fade), box-shadow var(--anim-fade), border-top-color var(--anim-fade);
+  opacity:0;
+  animation:hearth-tile-in 480ms ease-out forwards;
 }
-.cc-hearth-card:hover,.cc-hearth-card:active{
+.cc-hearth-tile:hover,
+.cc-hearth-tile:active{
   transform:translateY(-1px);
   box-shadow:var(--card-shadow-lg);
-  border-top-color:var(--civic);
+  border-top-color:var(--accent);
 }
-.cc-hearth-card:focus-visible{
+.cc-hearth-tile:focus-visible{
   outline:2px solid var(--focus-ring);
   outline-offset:2px;
 }
-.cc-hearth-card-label{
+/* Stagger the tile entry so they bloom in sequence rather than all at once. */
+.cc-hearth-tile:nth-child(1){animation-delay:0ms}
+.cc-hearth-tile:nth-child(2){animation-delay:60ms}
+.cc-hearth-tile:nth-child(3){animation-delay:120ms}
+.cc-hearth-tile:nth-child(4){animation-delay:180ms}
+.cc-hearth-tile:nth-child(5){animation-delay:240ms}
+.cc-hearth-tile:nth-child(6){animation-delay:300ms}
+@keyframes hearth-tile-in{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media (prefers-reduced-motion: reduce){
+  .cc-hearth-tile{animation:none;opacity:1}
+}
+
+/* Fresh glow — items with activity in the last day earn a civic accent. */
+.cc-hearth-tile-fresh{
+  border-top-color:var(--civic);
+  box-shadow:0 0 0 1px var(--civic) inset, var(--card-shadow);
+}
+.cc-hearth-tile-fresh:hover,
+.cc-hearth-tile-fresh:active{
+  border-top-color:var(--accent);
+}
+.cc-hearth-tile-fresh-dot{
+  color:var(--civic);
+  font-size:8px;
+  line-height:1;
+  margin-left:auto;
+  align-self:center;
+}
+
+/* Warn tone — Scriptorium tile when there are unresolved errors/warnings. */
+.cc-hearth-tile-warn{border-top-color:var(--warning)}
+.cc-hearth-tile-warn:hover,
+.cc-hearth-tile-warn:active{border-top-color:var(--warning)}
+
+/* Internal layout: icon + label in a head row; body below; meta at the
+   bottom; optional extra (e.g. mini progress bar) above meta. */
+.cc-hearth-tile-head{
+  display:flex;
+  align-items:center;
+  gap:var(--sp-8);
+}
+.cc-hearth-tile-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;height:22px;
+  color:var(--accent);
+  flex-shrink:0;
+}
+.cc-hearth-tile-icon svg{width:100%;height:100%;display:block}
+.cc-hearth-tile-fresh .cc-hearth-tile-icon{color:var(--civic)}
+.cc-hearth-tile-warn .cc-hearth-tile-icon{color:var(--warning)}
+.cc-hearth-tile-label{
   font-size:var(--fs-2xs);
-  text-transform:uppercase;
   letter-spacing:0.12em;
+  text-transform:uppercase;
   color:var(--accent);
   font-weight:600;
-  margin-bottom:var(--sp-8);
 }
-.cc-hearth-card-body{
+.cc-hearth-tile-fresh .cc-hearth-tile-label{color:var(--civic)}
+.cc-hearth-tile-warn .cc-hearth-tile-label{color:var(--warning)}
+.cc-hearth-tile-body{
   font-family:var(--ff-heading);
-  font-size:var(--fs-md);
+  font-size:var(--fs-sm);
   color:var(--text-primary);
-  line-height:1.4;
-  margin-bottom:var(--sp-4);
+  line-height:1.35;
 }
-.cc-hearth-card-meta{
+.cc-hearth-tile-meta{
   font-size:var(--fs-2xs);
   color:var(--text-tertiary);
   font-style:italic;
-  letter-spacing:0.03em;
+  letter-spacing:0.02em;
+  margin-top:auto;
+  line-height:1.4;
 }
+.cc-hearth-tile-progress{
+  display:block;
+  margin-top:var(--sp-2);
+}
+.cc-hearth-tile-progress .cc-progress-bar{height:6px}
 
 /* --- City map — rooms as districts, not a flat grid --- */
 .cc-city-map{margin-top:var(--sp-24)}

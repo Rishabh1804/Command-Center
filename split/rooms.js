@@ -225,58 +225,188 @@ CC.renderHearthHeader = function() {
 
 // Living cards: latest decree, latest canon, undrafted profile count.
 // Each card is presence, not telemetry. Nothing blinks. Nothing demands.
-CC.renderHearthCards = function() {
-  var cards = [];
+// Returns true if an ISO date string (YYYY-MM-DD) is within N days of today.
+// Used to mark Hearth tiles as "fresh" so recent activity gets a subtle
+// accent highlight, honoring the Sovereign's directive that the Hearth feel
+// alive rather than static.
+CC.isRecent = function(dateStr, days) {
+  if (!dateStr) return false;
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr));
+  if (!m) return false;
+  var then = new Date(
+    parseInt(m[1], 10),
+    parseInt(m[2], 10) - 1,
+    parseInt(m[3], 10)
+  );
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var diffMs = today.getTime() - then.getTime();
+  var diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays >= -1 && diffDays <= (days || 1);
+};
 
-  // Card 1 — the Capital's most recent outbound decree. Tapping the card
-  // navigates to the Senate, where the full decree ledger lives.
-  cards.push([
-    '<button class="cc-hearth-card" data-action="navRoom" data-room="senate" aria-label="Latest Decree \u2014 open the Senate">',
-    '<div class="cc-hearth-card-label">Latest Decree</div>',
-    '<div class="cc-hearth-card-body">Decree 0001 \u2014 Ashara &amp; Petra profiles ratified to v0.4.</div>',
-    '<div class="cc-hearth-card-meta">Chronicled 17 Apr 2026 \u00b7 first outbound decree from the Capital</div>',
+// Hearth tile builder. Each tile is a tappable civic bulletin with icon,
+// label, body, and meta. Optional `fresh` flag enables the accent glow.
+// Icons are small inline SVGs so tiles stand on their own visual weight.
+CC.HEARTH_TILE_ICONS = {
+  monument:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L9 6 L9 19 L15 19 L15 6 Z"/><line x1="5" y1="19" x2="19" y2="19"/></svg>',
+  decree:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>',
+  canon:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5 L4 19 A 2 2 0 0 0 6 21 L20 21 L20 7 A 2 2 0 0 0 18 5 Z"/><line x1="4" y1="5" x2="15" y2="5"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg>',
+  chronicle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4 C 4 4, 4 8, 6 8 L 18 8 C 20 8, 20 4, 18 4 Z"/><path d="M6 8 L6 20 L18 20 L18 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="16" x2="13" y2="16"/></svg>',
+  order:     '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="6" r="1.6"/><circle cx="18.5" cy="9.5" r="1.6"/><circle cx="18.5" cy="15.5" r="1.6"/><circle cx="12" cy="19.5" r="1.6"/><circle cx="5.5" cy="15.5" r="1.6"/><circle cx="5.5" cy="9.5" r="1.6"/><circle cx="12" cy="12.5" r="1.4"/></svg>',
+  scriptorium:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16" r="0.8" fill="currentColor" stroke="none"/></svg>',
+};
+
+CC.renderHearthTile = function(opts) {
+  if (!opts) return '';
+  var iconSvg = CC.HEARTH_TILE_ICONS[opts.icon] || '';
+  var classes = ['cc-hearth-tile'];
+  if (opts.fresh) classes.push('cc-hearth-tile-fresh');
+  if (opts.tone) classes.push('cc-hearth-tile-' + opts.tone);
+  var action = opts.route
+    ? ' data-action="nav" data-target="' + CC.escAttr(opts.route) + '"'
+    : '';
+  var ariaLabel = opts.ariaLabel || (opts.label + ': ' + opts.bodyText);
+  return [
+    '<button class="' + classes.join(' ') + '"' + action
+      + ' aria-label="' + CC.escAttr(ariaLabel) + '">',
+    '<span class="cc-hearth-tile-head">',
+    '<span class="cc-hearth-tile-icon" aria-hidden="true">' + iconSvg + '</span>',
+    '<span class="cc-hearth-tile-label">' + CC.escHtml(opts.label) + '</span>',
+    opts.fresh ? '<span class="cc-hearth-tile-fresh-dot" aria-label="fresh">\u25CF</span>' : '',
+    '</span>',
+    '<span class="cc-hearth-tile-body">' + (opts.bodyHtml || CC.escHtml(opts.bodyText || '')) + '</span>',
+    opts.meta ? '<span class="cc-hearth-tile-meta">' + CC.escHtml(opts.meta) + '</span>' : '',
+    opts.extraHtml || '',
     '</button>',
-  ].join(''));
+  ].join('');
+};
 
-  // Card 2 — most recent canon ratified. When multiple canons share the same
-  // `created` date (common for canons authored in the same session), prefer
-  // the last-inserted in the array — that matches "latest added" semantics.
-  var canonsData = (CC.state.cache && CC.state.cache.canons) || null;
-  var canonLine = 'Fetching from the Library.';
-  var canonMeta = 'Consulted via Ostia';
-  if (canonsData && Array.isArray(canonsData.canons) && canonsData.canons.length > 0) {
-    var latest = null;
-    var maxDate = '';
-    canonsData.canons.forEach(function(c) {
-      if (!c || c._deleted) return;
-      var d = c.created ? String(c.created) : '';
-      // `>=` so later-in-array wins tie on same date.
-      if (d >= maxDate) {
-        maxDate = d;
-        latest = c;
-      }
+// --- Individual tile builders ----------------------------------------------
+
+CC.buildHearthTile_monument = function() {
+  var complete = 0, partial = 0;
+  var total = (CC.FOUNDATION_CRITERIA || []).length;
+  (CC.FOUNDATION_CRITERIA || []).forEach(function(c) {
+    if (c.state === 'complete') complete++;
+    else if (c.state === 'partial') partial++;
+  });
+  var bar = CC.renderProgressBar
+    ? CC.renderProgressBar(complete, partial, total)
+    : '';
+  return CC.renderHearthTile({
+    label: 'Monument',
+    icon: 'monument',
+    bodyText: 'Foundation \u00b7 ' + complete + ' of ' + total + ' complete'
+      + (partial ? ', ' + partial + ' partial' : ''),
+    meta: 'Command Center',
+    extraHtml: '<span class="cc-hearth-tile-progress">' + bar + '</span>',
+    route: '/plaza',
+    ariaLabel: 'Monument \u2014 open the Plaza',
+  });
+};
+
+CC.buildHearthTile_latestDecree = function() {
+  var list = (CC.DECREES || []);
+  if (list.length === 0) {
+    return CC.renderHearthTile({
+      label: 'Latest Decree',
+      icon: 'decree',
+      bodyText: 'No decrees yet.',
+      meta: 'The ledger is empty',
+      route: '/senate',
+      ariaLabel: 'Decree ledger \u2014 open the Senate',
     });
-    if (!latest) latest = canonsData.canons[canonsData.canons.length - 1];
-    if (latest) {
-      var title = latest.title || latest.rule || latest.id || '(untitled)';
-      canonLine = CC.escHtml(title);
-      var metaParts = [];
-      if (latest.id) metaParts.push(CC.escHtml(latest.id));
-      if (latest.created) metaParts.push('ratified ' + CC.escHtml(CC.formatDateShort(latest.created)));
-      canonMeta = metaParts.join(' \u00b7 ') || 'consulted via Ostia';
-    }
-  } else {
-    canonLine = '<em>' + canonLine + '</em>';
   }
-  cards.push([
-    '<button class="cc-hearth-card" data-action="navRoom" data-room="archives" aria-label="Latest Canon \u2014 open the Archives">',
-    '<div class="cc-hearth-card-label">Latest Canon</div>',
-    '<div class="cc-hearth-card-body">' + canonLine + '</div>',
-    '<div class="cc-hearth-card-meta">' + canonMeta + '</div>',
-    '</button>',
-  ].join(''));
+  var latest = list[0];
+  return CC.renderHearthTile({
+    label: 'Latest Decree',
+    icon: 'decree',
+    bodyText: 'Decree ' + latest.id + ' \u2014 ' + (latest.title || ''),
+    meta: (latest.body || '') + ' \u00b7 Chronicled ' + CC.formatDateShort(latest.date || ''),
+    route: '/senate',
+    ariaLabel: 'Latest Decree \u2014 open the Senate',
+    fresh: CC.isRecent(latest.date, 1),
+  });
+};
 
-  // Card 3 — undrafted Gen 0 profiles (honest count, encourages Cabinet).
+CC.buildHearthTile_latestCanon = function() {
+  var canonsData = (CC.state.cache && CC.state.cache.canons) || null;
+  if (!canonsData || !Array.isArray(canonsData.canons) || canonsData.canons.length === 0) {
+    return CC.renderHearthTile({
+      label: 'Latest Canon',
+      icon: 'canon',
+      bodyHtml: '<em>Fetching from the Library.</em>',
+      meta: 'Consulted via Ostia',
+      route: '/archives',
+      ariaLabel: 'Latest Canon \u2014 open the Archives',
+    });
+  }
+  var latest = null;
+  var maxDate = '';
+  canonsData.canons.forEach(function(c) {
+    if (!c || c._deleted) return;
+    var d = c.created ? String(c.created) : '';
+    if (d >= maxDate) { maxDate = d; latest = c; }
+  });
+  if (!latest) latest = canonsData.canons[canonsData.canons.length - 1];
+  var title = latest.title || latest.rule || latest.id || '(untitled)';
+  var metaParts = [];
+  if (latest.id) metaParts.push(latest.id);
+  if (latest.created) metaParts.push('ratified ' + CC.formatDateShort(latest.created));
+  return CC.renderHearthTile({
+    label: 'Latest Canon',
+    icon: 'canon',
+    bodyText: title,
+    meta: metaParts.join(' \u00b7 '),
+    route: '/archives',
+    ariaLabel: 'Latest Canon \u2014 open the Archives',
+    fresh: CC.isRecent(latest.created, 1),
+  });
+};
+
+CC.buildHearthTile_latestChronicle = function() {
+  var canonsData = (CC.state.cache && CC.state.cache.canons) || null;
+  if (!canonsData || !Array.isArray(canonsData.lore)) {
+    return CC.renderHearthTile({
+      label: 'Latest Chronicle',
+      icon: 'chronicle',
+      bodyHtml: '<em>Fetching from the Library.</em>',
+      meta: 'Consulted via Ostia',
+      route: '/archives',
+      ariaLabel: 'Latest Chronicle \u2014 open the Archives',
+    });
+  }
+  var candidates = canonsData.lore.filter(function(l) {
+    return l && !l._deleted && l.title
+      && (l.category === 'chronicles' || l.category === 'cautionary_tales' || l.category === 'doctrines');
+  });
+  if (candidates.length === 0) return null;
+  var latest = null;
+  var maxDate = '';
+  candidates.forEach(function(l) {
+    var d = l.created ? String(l.created) : (l.date ? String(l.date) : '');
+    if (d >= maxDate) { maxDate = d; latest = l; }
+  });
+  if (!latest) return null;
+  var catLabel = latest.category === 'chronicles' ? 'Chronicle'
+    : latest.category === 'cautionary_tales' ? 'Cautionary Tale'
+    : latest.category === 'doctrines' ? 'Doctrine'
+    : 'Lore';
+  var metaParts = [catLabel];
+  if (latest.created) metaParts.push('chronicled ' + CC.formatDateShort(latest.created));
+  return CC.renderHearthTile({
+    label: 'Latest Chronicle',
+    icon: 'chronicle',
+    bodyText: latest.title,
+    meta: metaParts.join(' \u00b7 '),
+    route: '/archives',
+    ariaLabel: 'Latest Chronicle \u2014 ' + latest.title + ' \u2014 open the Archives',
+    fresh: CC.isRecent(latest.created, 1),
+  });
+};
+
+CC.buildHearthTile_order = function() {
   var companionsData = (CC.state.cache && CC.state.cache.companions) || null;
   var drafted = 0;
   var total = (CC.GEN_ZERO_IDS || []).length;
@@ -286,21 +416,55 @@ CC.renderHearthCards = function() {
     });
   }
   var undrafted = total - drafted;
-  var orderLine = undrafted === 0
+  var body = undrafted === 0
     ? 'The Order is fully profiled.'
     : undrafted + ' of ' + total + ' Gen 0 companions await profile drafting.';
-  var orderMeta = total > 0
+  var meta = total > 0
     ? drafted + ' of ' + total + ' profiles present in Codex'
     : 'Awaiting Ostia fetch';
-  cards.push([
-    '<button class="cc-hearth-card" data-action="navRoom" data-room="senate" aria-label="The Order \u2014 open the Senate where the Order convenes">',
-    '<div class="cc-hearth-card-label">The Order</div>',
-    '<div class="cc-hearth-card-body">' + CC.escHtml(orderLine) + '</div>',
-    '<div class="cc-hearth-card-meta">' + CC.escHtml(orderMeta) + '</div>',
-    '</button>',
-  ].join(''));
+  return CC.renderHearthTile({
+    label: 'The Order',
+    icon: 'order',
+    bodyText: body,
+    meta: meta,
+    route: '/senate',
+    ariaLabel: 'The Order \u2014 open the Senate',
+  });
+};
 
-  return '<div class="cc-hearth-cards">' + cards.join('') + '</div>';
+CC.buildHearthTile_scriptorium = function() {
+  if (!CC.readLog) return null;
+  var entries = CC.readLog();
+  var errs = 0, warns = 0;
+  entries.forEach(function(e) {
+    if (e.level === 'error') errs++;
+    else if (e.level === 'warn') warns++;
+  });
+  if (errs === 0 && warns === 0) return null;  // Silent when clean.
+  var parts = [];
+  if (errs) parts.push(errs + ' error' + (errs === 1 ? '' : 's'));
+  if (warns) parts.push(warns + ' warning' + (warns === 1 ? '' : 's'));
+  return CC.renderHearthTile({
+    label: 'Scriptorium',
+    icon: 'scriptorium',
+    bodyText: parts.join(' \u00b7 '),
+    meta: 'Operational capture live',
+    route: '/scriptorium',
+    ariaLabel: 'Scriptorium \u2014 open the operational log',
+    tone: 'warn',
+  });
+};
+
+CC.renderHearthCards = function() {
+  var tiles = [
+    CC.buildHearthTile_monument(),
+    CC.buildHearthTile_latestDecree(),
+    CC.buildHearthTile_latestCanon(),
+    CC.buildHearthTile_latestChronicle(),
+    CC.buildHearthTile_order(),
+    CC.buildHearthTile_scriptorium(),
+  ].filter(Boolean);
+  return '<div class="cc-hearth-tiles">' + tiles.join('') + '</div>';
 };
 
 // City map — rooms as districts. Charter Art. 4: the Capital is a city.

@@ -82,8 +82,16 @@ async function main() {
   assert(!!heartHeader, 'Hearth header present at /');
   const civicDate = await page.$('.cc-hearth-date');
   assert(!!civicDate, 'Civic date rendered on Hearth');
-  const hearthCards = await page.$$('.cc-hearth-card');
-  assert(hearthCards.length === 3, 'Hearth has 3 presence cards (got ' + hearthCards.length + ')');
+  const hearthTiles = await page.$$('.cc-hearth-tile');
+  assert(hearthTiles.length >= 4 && hearthTiles.length <= 6,
+    'Hearth has 4-6 bulletin tiles (got ' + hearthTiles.length + ')');
+  // Every tile must carry an icon SVG — civic iconography is load-bearing.
+  const tileIcons = await page.$$('.cc-hearth-tile-icon svg');
+  assert(tileIcons.length === hearthTiles.length,
+    'Each Hearth tile has an icon (' + tileIcons.length + ' icons, ' + hearthTiles.length + ' tiles)');
+  // Monument tile carries an embedded progressbar.
+  const tileProgress = await page.$('.cc-hearth-tile-progress [role="progressbar"]');
+  assert(!!tileProgress, 'Monument tile embeds a progressbar');
   const districts = await page.$$('.cc-district');
   assert(districts.length === 5, 'City map has 5 districts (got ' + districts.length + ')');
   const chronicle = await page.$('.cc-chronicle-strip');

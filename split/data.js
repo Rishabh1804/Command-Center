@@ -420,11 +420,32 @@ CC.DISTRICTS = [
   },
 ];
 
+// --- Capital-issued decrees ledger ---
+// Maintained list of decrees the Capital has produced and transmitted to
+// Codex via the Ostia contract. New entries are added when a decree snippet
+// is authored in /decrees/*.json. The Hearth's Latest Decree tile and the
+// Senate's decree ledger both read from this. Most-recent-first by virtue
+// of manual ordering at the top of the array.
+CC.DECREES = [
+  {
+    id: '0002',
+    file: 'decree-0002-canons-gov-007-010.json',
+    title: 'Four governance canons \u2014 Research, MVP, Instrument, Label',
+    body: 'canon-gov-007 through 010 + lore-008 cautionary tale.',
+    date: '2026-04-17',
+    chronicled_by: 'ashara + petra',
+  },
+  {
+    id: '0001',
+    file: 'decree-0001-ashara-petra-v0.4.json',
+    title: 'Ashara & Petra profiles ratified to v0.4',
+    body: 'Seven block-level amendments across two Monument co-Builder profiles.',
+    date: '2026-04-17',
+    chronicled_by: 'ashara + petra',
+  },
+];
+
 // --- Foundation Complete criterion ledger ---
-// Single source of truth for both the Productivity Office (detailed ledger
-// display) and the Monument Plaza (summary + progress bar). ROADMAP Stage 1
-// criteria, updated 17 Apr 2026 after the Sovereign's on-device walks and
-// the Scriptorium + smoketest additions.
 CC.FOUNDATION_CRITERIA = [
   { id: 'rooms-scaffolded',        state: 'complete', text: '15 rooms scaffolded and reachable' },
   { id: 'civic-hearth',             state: 'complete', text: 'Capital Overview as Civic Hearth' },
