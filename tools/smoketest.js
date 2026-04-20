@@ -23,6 +23,7 @@ const INDEX_URL = 'file://' + path.join(REPO_ROOT, 'index.html');
 const ROUTES = [
   '#/',
   '#/senate',
+  '#/consul',
   '#/order',
   '#/forum',
   '#/archives',

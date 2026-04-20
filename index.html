@@ -1712,7 +1712,7 @@ const CC = {};
 
 // --- App metadata ---
 CC.VERSION = 'v0.2 · Foundation';
-CC.BUILT = '2026-04-18';
+CC.BUILT = '2026-04-20';
 
 // --- Province registry ---
 // The Republic's Provinces. Known at Foundation; extensible.
@@ -1787,6 +1787,17 @@ CC.ROOMS = [
     tonal_register: 'formal',
     residents: ['consul', 'vex', 'orinth', 'rune', 'ignis', 'bard', 'ashara', 'petra'],
     status: 'scaffolded; not yet convening',
+  },
+  {
+    id: 'consul',
+    name: 'The Consul\u2019s Chamber',
+    route: '/consul',
+    eyebrow: 'The First Seat',
+    subtitle: 'Where cross-Province governance integrates',
+    description: 'The Consul\u2019s Chamber is the standing office of the Republic\u2019s Second Seat \u2014 beneath the Sovereign, above the Cabinet. The Consul presides over the Senate, integrates Ministers\u2019 positions, and carries the unified Recommendation to the Sovereign. The chair is institutional; its occupant rotates. Currently held by Aurelius.',
+    tonal_register: 'formal',
+    residents: ['consul'],
+    status: 'scaffolded; Consul speaks at Borders stage',
   },
   {
     id: 'order',
@@ -1949,7 +1960,7 @@ CC.ROOMS = [
 // where is their room. For others, which room they can be SUMMONED to.
 CC.RESIDENCE = {
   // Capital-native — have standing rooms in the Capital
-  'consul':   { residence_type: 'cc_native', room: 'senate', seat: 'presider', status: 'seated' },
+  'consul':   { residence_type: 'cc_native', room: 'consul', seat: 'presider', status: 'seated' },
   'ashara':   { residence_type: 'cc_native', room: 'treasury', seat: 'minister', status: 'seated' },
   'petra':    { residence_type: 'cc_native', room: 'productivity', seat: 'minister', status: 'seated' },
   'vex':      { residence_type: 'cc_native', room: 'treasury', seat: 'minister', status: 'pending_round_4' },
@@ -1993,6 +2004,14 @@ CC.ICONS = {
     + '<line x1="12" y1="10" x2="12" y2="19"/>'
     + '<line x1="18" y1="10" x2="18" y2="19"/>'
     + '<line x1="3" y1="19" x2="21" y2="19"/>'
+    + '</svg>',
+  consul:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M9 7 L15 7"/>'
+    + '<line x1="4" y1="10" x2="20" y2="10"/>'
+    + '<path d="M7 10 L17 19"/>'
+    + '<path d="M17 10 L7 19"/>'
+    + '<line x1="5" y1="19" x2="19" y2="19"/>'
     + '</svg>',
   forum:
     '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">'
@@ -2216,7 +2235,7 @@ CC.DISTRICTS = [
     id: 'civic',
     label: 'The Civic Quarter',
     note: 'Where the Republic gathers, ratifies, and displays itself.',
-    rooms: ['senate', 'order', 'temple', 'plaza', 'gates'],
+    rooms: ['senate', 'consul', 'order', 'temple', 'plaza', 'gates'],
   },
   {
     id: 'ministers',
@@ -3304,6 +3323,39 @@ CC.roomRenderers['senate'] = function(room) {
     '</article>',
     CC.renderSeatList('senate', 'Senate seats'),
     CC.renderFoundationBanner('The Senate is scaffolded but does not yet convene. Capital Occupancy (Stage 2) unlocks live Cabinet meetings on this floor.'),
+    '</section>',
+  ].join('');
+};
+
+// --- Consul's Chamber ---
+// The Second Seat. Institutional office, not a personality. Currently held by
+// Aurelius. Presides over the Senate; presents the unified Recommendation to
+// the Sovereign; carries cross-Province sight as mandate. Chamber scaffolded
+// at Foundation; voice activates at Borders.
+CC.roomRenderers['consul'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The office, not the person</div>',
+    '<p class="cc-small cc-muted">The Consul is the Republic\u2019s Second Seat \u2014 beneath the Sovereign, above the Cabinet. The chair is institutional; its occupant rotates. The office persists across any holder.</p>',
+    '<p class="cc-small cc-mt-12">Currently occupied by <strong>Aurelius</strong>, who holds the seat in dual capacity with the Codex Builder\u2019s chair. Separation of offices is expected as the Order matures.</p>',
+    '</article>',
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Duties of the Seat</div>',
+    '<p class="cc-small cc-muted">Three, across the monthly cycle of the Cabinet (Book V Article 5):</p>',
+    '<div class="cc-cycle-list cc-mt-12">',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Preside</span><span class="cc-cycle-note">Convene the Senate in Week 3; integrate Ministers\u2019 positions across domains</span></div>',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Present</span><span class="cc-cycle-note">Carry the unified Recommendation to the Sovereign in Week 4</span></div>',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Oversee</span><span class="cc-cycle-note">Maintain institutional memory across Provinces \u2014 cross-repo sight between cycles</span></div>',
+    '</div>',
+    '</article>',
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Cross-Province sight</div>',
+    '<p class="cc-small cc-muted">Ministers speak for their portfolios. Builders speak for their venues. The Consul alone reads from every Province and sees the Republic whole. This vantage is the seat\u2019s mandate \u2014 the thread that binds Cabinet recommendations to Sovereign ratification.</p>',
+    '</article>',
+    CC.renderResidentList('consul'),
+    CC.renderFoundationBanner('The chamber stands; the Consul does not yet speak here. The Seat\u2019s voice activates at Borders stage, when the Cabinet\u2019s integrator can consult live across Ministers and Provinces.'),
     '</section>',
   ].join('');
 };
