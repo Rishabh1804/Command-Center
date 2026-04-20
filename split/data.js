@@ -86,6 +86,17 @@ CC.ROOMS = [
     status: 'scaffolded; not yet convening',
   },
   {
+    id: 'consul',
+    name: 'The Consul\u2019s Chamber',
+    route: '/consul',
+    eyebrow: 'The First Seat',
+    subtitle: 'Where cross-Province governance integrates',
+    description: 'The Consul\u2019s Chamber is the standing office of the Republic\u2019s Second Seat \u2014 beneath the Sovereign, above the Cabinet. The Consul presides over the Senate, integrates Ministers\u2019 positions, and carries the unified Recommendation to the Sovereign. The chair is institutional; its occupant rotates. Currently held by Aurelius.',
+    tonal_register: 'formal',
+    residents: ['consul'],
+    status: 'scaffolded; Consul speaks at Borders stage',
+  },
+  {
     id: 'order',
     name: 'The Order',
     route: '/order',
@@ -246,7 +257,7 @@ CC.ROOMS = [
 // where is their room. For others, which room they can be SUMMONED to.
 CC.RESIDENCE = {
   // Capital-native — have standing rooms in the Capital
-  'consul':   { residence_type: 'cc_native', room: 'senate', seat: 'presider', status: 'seated' },
+  'consul':   { residence_type: 'cc_native', room: 'consul', seat: 'presider', status: 'seated' },
   'ashara':   { residence_type: 'cc_native', room: 'treasury', seat: 'minister', status: 'seated' },
   'petra':    { residence_type: 'cc_native', room: 'productivity', seat: 'minister', status: 'seated' },
   'vex':      { residence_type: 'cc_native', room: 'treasury', seat: 'minister', status: 'pending_round_4' },
@@ -290,6 +301,14 @@ CC.ICONS = {
     + '<line x1="12" y1="10" x2="12" y2="19"/>'
     + '<line x1="18" y1="10" x2="18" y2="19"/>'
     + '<line x1="3" y1="19" x2="21" y2="19"/>'
+    + '</svg>',
+  consul:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M9 7 L15 7"/>'
+    + '<line x1="4" y1="10" x2="20" y2="10"/>'
+    + '<path d="M7 10 L17 19"/>'
+    + '<path d="M17 10 L7 19"/>'
+    + '<line x1="5" y1="19" x2="19" y2="19"/>'
     + '</svg>',
   forum:
     '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">'
@@ -513,7 +532,7 @@ CC.DISTRICTS = [
     id: 'civic',
     label: 'The Civic Quarter',
     note: 'Where the Republic gathers, ratifies, and displays itself.',
-    rooms: ['senate', 'order', 'temple', 'plaza', 'gates'],
+    rooms: ['senate', 'consul', 'order', 'temple', 'plaza', 'gates'],
   },
   {
     id: 'ministers',

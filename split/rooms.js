@@ -611,6 +611,39 @@ CC.roomRenderers['senate'] = function(room) {
   ].join('');
 };
 
+// --- Consul's Chamber ---
+// The Second Seat. Institutional office, not a personality. Currently held by
+// Aurelius. Presides over the Senate; presents the unified Recommendation to
+// the Sovereign; carries cross-Province sight as mandate. Chamber scaffolded
+// at Foundation; voice activates at Borders.
+CC.roomRenderers['consul'] = function(room) {
+  return [
+    '<section class="cc-room">',
+    CC.renderRoomHeader(room),
+    '<article class="cc-card">',
+    '<div class="cc-card-title">The office, not the person</div>',
+    '<p class="cc-small cc-muted">The Consul is the Republic\u2019s Second Seat \u2014 beneath the Sovereign, above the Cabinet. The chair is institutional; its occupant rotates. The office persists across any holder.</p>',
+    '<p class="cc-small cc-mt-12">Currently occupied by <strong>Aurelius</strong>, who holds the seat in dual capacity with the Codex Builder\u2019s chair. Separation of offices is expected as the Order matures.</p>',
+    '</article>',
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Duties of the Seat</div>',
+    '<p class="cc-small cc-muted">Three, across the monthly cycle of the Cabinet (Book V Article 5):</p>',
+    '<div class="cc-cycle-list cc-mt-12">',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Preside</span><span class="cc-cycle-note">Convene the Senate in Week 3; integrate Ministers\u2019 positions across domains</span></div>',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Present</span><span class="cc-cycle-note">Carry the unified Recommendation to the Sovereign in Week 4</span></div>',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Oversee</span><span class="cc-cycle-note">Maintain institutional memory across Provinces \u2014 cross-repo sight between cycles</span></div>',
+    '</div>',
+    '</article>',
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Cross-Province sight</div>',
+    '<p class="cc-small cc-muted">Ministers speak for their portfolios. Builders speak for their venues. The Consul alone reads from every Province and sees the Republic whole. This vantage is the seat\u2019s mandate \u2014 the thread that binds Cabinet recommendations to Sovereign ratification.</p>',
+    '</article>',
+    CC.renderResidentList('consul'),
+    CC.renderFoundationBanner('The chamber stands; the Consul does not yet speak here. The Seat\u2019s voice activates at Borders stage, when the Cabinet\u2019s integrator can consult live across Ministers and Provinces.'),
+    '</section>',
+  ].join('');
+};
+
 // --- Forum ---
 CC.roomRenderers['forum'] = function(room) {
   return [
