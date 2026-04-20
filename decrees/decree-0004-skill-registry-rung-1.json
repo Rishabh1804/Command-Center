@@ -1,0 +1,134 @@
+{
+  "_snippet_version": 1,
+  "session": {
+    "id": "s-2026-04-20-cc-01",
+    "date": "2026-04-20",
+    "authored_by": "ashara + petra",
+    "province_of_origin": "command-center",
+    "ratified_by": "pending rung 2",
+    "ratification_mode": "rung-1 co-draft under canon-cc-009 dual-builder tension",
+    "summary": "First Rung 1 co-draft of the Skill Registry v0.1 interface specification. Produced under canon-cc-009 dual-Builder tension (Ashara long-arc economic voice, Petra structural floor-solid voice) following Sovereign-direct authorization conveyed through Codex session s-2026-04-20-10 on branch claude/summon-aurelius-wjnHa. The draft introduces the Province Skill primitive as sibling to canon-cc-026's Persona Skill, resolves five open forks (placement, sync model, invocation paths, transit logging, signing chain), and works the pattern end-to-end through snippet-import as the first retrofit target. Canonical spec at docs/specs/command-center/skill-registry-v0.1-draft.md. This decree is the signing-chain rationale artifact per canon-cc-027."
+  },
+  "new_chapters": [],
+  "lore": [],
+  "rung_1_rationale": {
+    "spec_id": "skill-registry-v0.1",
+    "spec_path": "docs/specs/command-center/skill-registry-v0.1-draft.md",
+    "rung": 1,
+    "authors": ["ashara", "petra"],
+    "voice_partition": "Co-drafted with argument per canon-cc-009. Ashara carried the long-arc economic case (why-this-exists, §1; Sentinel role expansion, §6; long-arc frame, §7.7). Petra carried the structural floor-solid case (manifest schema, §2; placement consequences, §3; classification criteria, §8.1; opt-in path model, §5.4). Joint authorship on registry behavior (§4), signing chain tiers (§8), and the worked example (§9). Voice partition was co-Builders' choice; Chronicler declined to pre-partition.",
+    "authority_chain": {
+      "rung_0_external_reference": "codex:docs/references/claude-opus-4.7-system-prompt.txt captured 2026-04-20",
+      "rung_0_strategic_readout": "codex session s-2026-04-20-09 (canon-pers-002 ratification session)",
+      "rung_0_prompt_authorship": "codex session s-2026-04-20-10 on branch claude/summon-aurelius-wjnHa",
+      "rung_0_sovereign_authorization": "direct, conveyed in session s-2026-04-20-10"
+    },
+    "fork_resolutions": [
+      {
+        "fork": "A",
+        "name": "Placement of the canonical Province Skill",
+        "candidates": [
+          "repo-root skills/ directory (first-class Province artifact, code-class)",
+          "docs/specs/skills/ (mirroring Persona Skill layout, docs-class with deploy mirror)"
+        ],
+        "resolution": "repo-root skills/<name>/SKILL.md, code-class",
+        "evidence_weighed": [
+          "Persona Skills byte-mirror because companion voice must be identical across Provinces; Province Skills carry capability, not voice, and therefore do not need byte-mirroring. The reasoning that mandated docs-class placement for Persona Skills does not transfer.",
+          "Province Skills are read at runtime by sessions doing work inside the Province. Runtime consultation is a code-class interaction, not a doc-class interaction.",
+          "Placement under skills/ preserves the option of build-pipeline integration (e.g. Command Center's build.sh reading the directory for manifest validation) without mandating it at Rung 1.",
+          "The Rung 2 review surface is the whole folder (manifest + body + auxiliaries); skills/ makes the review unit coincide with the skill unit."
+        ],
+        "consequences_named": [
+          "No byte-mirroring between Provinces; the skill lives once at its origin Province.",
+          "Each Province acquires a top-level skills/ directory (small cost).",
+          "Ratification artifact lives at docs/specs/skills/<name>-v<version>.md per canon-cc-027; invocable manifest lives at skills/<name>/SKILL.md. Spec-vs-instrument split documented in spec §3.2."
+        ]
+      },
+      {
+        "fork": "B",
+        "name": "Registry sync model",
+        "candidates": [
+          "pull-based: Command Center fetches each Province's skills/ via GitHub Contents API on demand",
+          "push-based: each Province emits manifests to a shared location on skill-change",
+          "static: Codex-canonical data/skills.json synchronized the way canons.json is"
+        ],
+        "resolution": "hybrid: Codex holds canonical data/skills.json index (records-are-Codex per cc-010); Command Center is the active Registry (indexer, renderer, invoker). Manifest bodies fetched on demand from origin Provinces.",
+        "evidence_weighed": [
+          "Canon-cc-010 (records-are-Codex) places canonical records in Codex. A Registry index is a record class. Option (iii) satisfies cc-010; options (i) and (ii) do not without additional argument.",
+          "Command Center already carries the Cabinet, Consul's Chamber, Order room, Sentinel's transit log. The Registry is additive to an already-established Capital function, not displacement.",
+          "The Republic already runs this exact sync pattern for companions.json. Inventing a new model for the second instance of the same problem is Petra-anti-pattern.",
+          "Pull-based at-read-time for full manifest bodies preserves freshness without making the index itself a live-fetch dependency.",
+          "No new transport required; Ostia contract already handles this shape."
+        ],
+        "consequences_named": [
+          "Two new snippet types introduced: new_skills and update_skills. Documented in spec §4.4.",
+          "Command Center is active-but-not-authoritative: if rendering disagrees with Codex record, Codex wins.",
+          "No Province writes directly to data/skills.json; all writes go through Codex snippet pipeline."
+        ]
+      },
+      {
+        "fork": "C",
+        "name": "Primary invocation path",
+        "candidates": [
+          "in-Province Claude Code session loads SKILL.md on description-match (Opus 4.7 pattern)",
+          "Command Center UI surfaces invocable skills with a run affordance",
+          "dispatch subagent owns skill-selection and invocation across Provinces"
+        ],
+        "resolution": "three paths, tiered. Primary = in-Province session (ships at Rung 4). Secondary = Command Center UI (ships at Capital Occupancy). Tertiary = dispatch subagent (shape-ratified only, build deferred until load justifies).",
+        "evidence_weighed": [
+          "Opus 4.7 reference establishes the in-Province pattern as the pattern skills are designed to serve — skills attach to where work happens.",
+          "The Capital should exercise its own Registry, not merely index it. Secondary path prevents Registry-without-use at the Capital.",
+          "Dispatch subagent would be a solution in search of a problem at current Republic scale; honest acknowledgment prevents premature build.",
+          "Classification opt-in (invocation_paths manifest field) allows each skill to declare what it can soundly do, preserving Petra's floor-solid discipline."
+        ],
+        "consequences_named": [
+          "Every skill must support in-province-session; others are opt-in.",
+          "Cross-cluster invocations must route through CC UI (canon-cc-016 boundary forbids direct cross-cluster session access).",
+          "Rung 4 ratification of the tertiary path is a shape ratification, not a build ratification; a future spec ratifies specific dispatch-subagent designs when warranted."
+        ]
+      },
+      {
+        "fork": "D",
+        "name": "Sentinel transit log integration",
+        "candidates": [
+          "skill invocations log as Ostia-class events (existing class)",
+          "skill invocations log as a new event class",
+          "skill invocations do not log at all"
+        ],
+        "resolution": "cross-Province skill invocations log to Sentinel's Gates-transit log as Ostia-class events. Intra-Province invocations do not log.",
+        "evidence_weighed": [
+          "A cross-Province skill invocation is structurally the same event class as a deploy: capability crosses a Province boundary. Reusing the Ostia class honors the existing framing.",
+          "Logging every intra-Province invocation would flood the log with events that carry no governance weight, diluting the log's value.",
+          "Petra's discipline: instrument what matters, not what is frequent. The criterion is boundary-crossing.",
+          "Sentinel's role expands from 'archivist of deploys' to 'archivist of capability-exercise-across-Provinces' — same role, broader understanding of what constitutes a crossing."
+        ],
+        "consequences_named": [
+          "Event shape defined in spec §6.1 with fields including origin_province, invoking_province, invoker_role, classification, outcome.",
+          "Cross-cluster invocations add on_behalf_of_province to record originating intent while invoking_province remains command-center (the mediator).",
+          "The log is a governance chronicle, not a performance substrate. It is not used for rate-limiting or access control — canon-cc-016 handles access at the invocation surface."
+        ]
+      },
+      {
+        "fork": "E",
+        "name": "Signing chain for skill creation",
+        "candidates": [
+          "inherit canon-cc-027's five rungs unmodified",
+          "simplify: Builder authors + Cluster Censor reviews + Sovereign ratifies",
+          "tiered: minor/internal skills run simple chain; skills crossing Provinces run full chain"
+        ],
+        "resolution": "tiered. Intra-Province skills run the light chain (3 rungs: Builder, Cluster Censor, Sovereign). Cross-Province skills run the full canon-cc-027 five-rung chain. Classification declared in manifest; classification itself reviewed at Rung 2.",
+        "evidence_weighed": [
+          "Uniform full-chain over-burdens small capabilities that carry no cross-Province effect. The Registry's value depends on low friction for the first retrofit wave; expensive ratification for trivial skills chills adoption.",
+          "Uniform simple chain under-reviews skills that touch canonical records or cross Provinces. Under-review of cross-Province capability is the higher-risk failure.",
+          "Tiered chain pays a classification cost in exchange for right-sized review. Classification criteria (§8.1) are mechanical enough that authors make the call honestly most of the time; Rung 2 reviews the judgment.",
+          "Over-classification is recoverable (a light-tier skill reviewed at full chain is not harmed by the review). Under-classification is the failure mode the criteria are designed to prevent; 'any criterion triggers full chain' is the bias."
+        ],
+        "consequences_named": [
+          "Worked table in spec §8.1 classifies the seven first-wave skills: five cross-Province, two intra-Province. Correct density for a Registry whose value is realized mostly at cross-Province invocation.",
+          "Version amendments scale with amendment class: patch = light regardless, minor = matches skill classification, major = full always. Classification changes are major amendments by definition.",
+          "Deprecation uses light chain. Deletion is separate, rare, full chain + canon-level justification."
+        ]
+      }
+    ]
+  }
+}
