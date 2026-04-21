@@ -1199,6 +1199,127 @@ body[data-tonal="civic"] .cc-room-header{border-bottom-width:2px}
   overflow-x:auto;
 }
 
+/* --- The Consul's Chamber — voice, matters ledger, composer --- */
+/* The voice card sits at the top of the chamber and speaks in institutional
+   register over the ledger count. Accent-left stripe echoes other room-
+   interior cards; the voice line itself gets heading-family italics so the
+   Seat's speech reads apart from descriptive prose. */
+.cc-consul-voice{border-left:3px solid var(--accent)}
+.cc-consul-voice-line{
+  margin:0;
+  font-family:var(--ff-heading);
+  font-style:italic;
+  font-size:var(--fs-md);
+  line-height:1.5;
+  color:var(--text-primary);
+}
+.cc-consul-voice-tally{
+  margin:var(--sp-8) 0 0;
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+/* The Matters ledger — one row per tabled Matter. Status chip at top-left,
+   tabled timestamp at top-right, title in body weight, optional context as
+   secondary, action buttons at the foot. Border-left tints by status so the
+   Sovereign can scan open vs. carried without reading. */
+.cc-consul-matter-list{display:flex;flex-direction:column;gap:var(--sp-10)}
+.cc-consul-matter{
+  background:var(--bg-elevated);
+  border:1px solid var(--border-light);
+  border-left:3px solid var(--border);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:var(--sp-10) var(--sp-12);
+}
+.cc-consul-matter[data-status="open"]{border-left-color:var(--accent)}
+.cc-consul-matter[data-status="carried"]{border-left-color:var(--success)}
+.cc-consul-matter[data-status="dismissed"]{border-left-color:var(--text-tertiary);opacity:0.75}
+.cc-consul-matter-head{
+  display:flex;
+  gap:var(--sp-10);
+  align-items:baseline;
+  flex-wrap:wrap;
+  margin-bottom:var(--sp-6);
+}
+.cc-consul-matter-status{
+  font-size:var(--fs-2xs);
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:var(--sp-2) var(--sp-8);
+  border-radius:var(--r-sm);
+  background:var(--bg-card);
+  color:var(--text-tertiary);
+}
+.cc-consul-matter-status[data-status="open"]{color:var(--accent)}
+.cc-consul-matter-status[data-status="carried"]{color:var(--success)}
+.cc-consul-matter-status[data-status="dismissed"]{color:var(--text-tertiary)}
+.cc-consul-matter-ts{
+  font-size:var(--fs-2xs);
+  color:var(--text-tertiary);
+  letter-spacing:0.03em;
+  font-family:var(--ff-body);
+}
+.cc-consul-matter-title{
+  margin:0;
+  font-size:var(--fs-sm);
+  color:var(--text-primary);
+  line-height:1.4;
+  word-break:break-word;
+}
+.cc-consul-matter-context{
+  margin:var(--sp-6) 0 0;
+  font-size:var(--fs-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+  word-break:break-word;
+}
+.cc-consul-matter-actions{
+  display:flex;
+  gap:var(--sp-8);
+  flex-wrap:wrap;
+  margin-top:var(--sp-10);
+}
+
+/* The composer — title input, context textarea, submit button. Inputs match
+   the card background so they read as part of the chamber rather than a
+   form-shaped intrusion. Focus state routes through the shared focus ring. */
+.cc-consul-composer{display:flex;flex-direction:column;gap:var(--sp-8)}
+.cc-consul-composer-label{
+  font-size:var(--fs-2xs);
+  font-weight:600;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--text-tertiary);
+}
+.cc-consul-composer-input,
+.cc-consul-composer-textarea{
+  width:100%;
+  padding:var(--sp-10) var(--sp-12);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  background:var(--bg-elevated);
+  color:var(--text-primary);
+  font-family:var(--ff-body);
+  font-size:var(--fs-sm);
+  line-height:1.5;
+  transition:border-color var(--anim-fade);
+}
+.cc-consul-composer-textarea{resize:vertical;min-height:72px}
+.cc-consul-composer-input:focus,
+.cc-consul-composer-textarea:focus{
+  outline:2px solid var(--focus-ring);
+  outline-offset:1px;
+  border-color:var(--accent);
+}
+.cc-consul-composer-actions{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:var(--sp-4);
+}
+
 /* --- Scriptorium indicator on the Hearth --- */
 .cc-hearth-indicator{
   display:inline-flex;

@@ -616,34 +616,198 @@ CC.roomRenderers['senate'] = function(room) {
 // Aurelius. Presides over the Senate; presents the unified Recommendation to
 // the Sovereign; carries cross-Province sight as mandate. Chamber scaffolded
 // at Foundation; voice activates at Borders.
+//
+// Foundation-stage voice: the Seat does not speak in persona. It acknowledges
+// Matters tabled before it in institutional register, counts what is open vs.
+// carried vs. dismissed, and leaves room for the Sovereign to write. The full
+// cross-Province integrator ships at Borders; this is the bench.
+
+// Matter-row status labels. Kept near the renderer so the ledger vocabulary
+// lives in one place.
+CC.CONSUL_STATUS_LABEL = {
+  open: 'Open',
+  carried: 'Carried',
+  dismissed: 'Dismissed',
+};
+
+// The voice: deterministic template over the ledger state. The office speaks,
+// never the person. Output is a civic sentence appropriate to a Consul
+// addressing the Sovereign before Cabinet convenes.
+CC.renderConsulVoice = function(matters) {
+  var open = 0, carried = 0, dismissed = 0, freshOpen = 0;
+  var DAY = 24 * 60 * 60 * 1000;
+  var now = Date.now();
+  matters.forEach(function(m) {
+    if (!m) return;
+    if (m.status === 'open') {
+      open++;
+      try {
+        var t = new Date(m.ts).getTime();
+        if (!isNaN(t) && (now - t) < 3 * DAY) freshOpen++;
+      } catch (e) {}
+    } else if (m.status === 'carried') carried++;
+    else if (m.status === 'dismissed') dismissed++;
+  });
+
+  var line;
+  if (matters.length === 0) {
+    line = 'The Seat is silent. No Matter stands before the Consul. The Sovereign may table one below.';
+  } else if (open === 0 && carried === 0 && dismissed > 0) {
+    line = 'No Matter stands. The prior cycle is closed; the bench is clear for the next.';
+  } else if (open === 0 && carried > 0) {
+    line = 'No open Matter stands. ' + carried + ' ' + (carried === 1 ? 'Matter has' : 'Matters have')
+      + ' been carried to Cabinet; the Consul awaits the next.';
+  } else if (open === 1) {
+    line = freshOpen
+      ? 'One Matter stands before the Seat, freshly tabled. The Consul will carry it to Cabinet in the next cycle.'
+      : 'One Matter stands before the Seat. The Consul will carry it to Cabinet in the next cycle.';
+  } else {
+    line = open + ' Matters stand before the Seat';
+    if (freshOpen === open) line += ', all freshly tabled';
+    else if (freshOpen > 0) line += ' (' + freshOpen + ' freshly tabled)';
+    line += '. The Consul reads them; they will be carried to Cabinet in the next cycle.';
+  }
+
+  var tally = [];
+  if (open) tally.push(open + ' open');
+  if (carried) tally.push(carried + ' carried');
+  if (dismissed) tally.push(dismissed + ' dismissed');
+  var tallyLine = tally.length
+    ? '<p class="cc-consul-voice-tally">' + CC.escHtml(tally.join(' · ')) + '</p>'
+    : '';
+
+  return [
+    '<article class="cc-card cc-consul-voice">',
+    '<div class="cc-card-title">The Consul speaks</div>',
+    '<p class="cc-consul-voice-line">' + CC.escHtml(line) + '</p>',
+    tallyLine,
+    '<p class="cc-small cc-muted cc-mt-12"><em>The office speaks, not the person. The full voice — live cross-Province integration — activates at the Borders stage.</em></p>',
+    '</article>',
+  ].join('');
+};
+
+// Single-row renderer for the Matters ledger. Shows title, context, tabled
+// timestamp, status chip, and the state-transition buttons appropriate to
+// the row. Event delegation via data-action; no inline handlers.
+CC.renderConsulMatter = function(matter) {
+  if (!matter || !matter.id) return '';
+  var status = matter.status || 'open';
+  var statusLabel = CC.CONSUL_STATUS_LABEL[status] || status;
+  var tsShort = '';
+  try {
+    var d = new Date(matter.ts);
+    if (!isNaN(d.getTime())) {
+      var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+      tsShort = pad(d.getDate()) + ' ' + (CC.MONTH_NAMES[d.getMonth()] || '')
+        + ' ' + d.getFullYear() + ' · '
+        + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+  } catch (e) {}
+
+  var actions = [];
+  if (status === 'open') {
+    actions.push('<button class="cc-pref-btn cc-pref-btn-ghost" data-action="consul-update-matter" data-matter-id="' + CC.escAttr(matter.id) + '" data-status="carried">Carry to Cabinet</button>');
+    actions.push('<button class="cc-pref-btn cc-pref-btn-ghost" data-action="consul-update-matter" data-matter-id="' + CC.escAttr(matter.id) + '" data-status="dismissed">Dismiss</button>');
+  } else {
+    actions.push('<button class="cc-pref-btn cc-pref-btn-ghost" data-action="consul-update-matter" data-matter-id="' + CC.escAttr(matter.id) + '" data-status="open">Reopen</button>');
+  }
+
+  var ctxHtml = matter.context
+    ? '<p class="cc-consul-matter-context">' + CC.escHtml(matter.context) + '</p>'
+    : '';
+
+  return [
+    '<article class="cc-consul-matter" data-status="' + CC.escAttr(status) + '">',
+    '<div class="cc-consul-matter-head">',
+    '<span class="cc-consul-matter-status" data-status="' + CC.escAttr(status) + '">' + CC.escHtml(statusLabel) + '</span>',
+    tsShort ? '<span class="cc-consul-matter-ts">' + CC.escHtml(tsShort) + '</span>' : '',
+    '</div>',
+    '<p class="cc-consul-matter-title">' + CC.escHtml(matter.title || '(untitled)') + '</p>',
+    ctxHtml,
+    '<div class="cc-consul-matter-actions">' + actions.join('') + '</div>',
+    '</article>',
+  ].join('');
+};
+
 CC.roomRenderers['consul'] = function(room) {
+  var matters = CC.readMatters ? CC.readMatters() : [];
+  // Group by status so open Matters lead; within a group newest first so a
+  // freshly tabled Matter is visible without scrolling.
+  var ordered = matters.slice().sort(function(a, b) {
+    var order = { open: 0, carried: 1, dismissed: 2 };
+    var sa = order[a.status] == null ? 3 : order[a.status];
+    var sb = order[b.status] == null ? 3 : order[b.status];
+    if (sa !== sb) return sa - sb;
+    return (b.ts || '').localeCompare(a.ts || '');
+  });
+
+  var mattersHtml;
+  if (ordered.length === 0) {
+    mattersHtml = [
+      '<article class="cc-card">',
+      '<div class="cc-card-title">Matters before the Seat</div>',
+      '<p class="cc-small cc-muted">The ledger is empty. When the Sovereign tables a Matter, the Consul takes it and carries it across the cycle.</p>',
+      '</article>',
+    ].join('');
+  } else {
+    mattersHtml = [
+      '<article class="cc-card">',
+      '<div class="cc-card-title">Matters before the Seat</div>',
+      '<p class="cc-card-subtitle">Open Matters lead; carried and dismissed follow.</p>',
+      '<div class="cc-consul-matter-list cc-mt-12">',
+      ordered.map(CC.renderConsulMatter).join(''),
+      '</div>',
+      '<div class="cc-log-actions cc-mt-16">',
+      '<button class="cc-pref-btn cc-pref-btn-ghost" data-action="consul-clear-matters">Clear ledger</button>',
+      '</div>',
+      '</article>',
+    ].join('');
+  }
+
+  var composer = [
+    '<article class="cc-card">',
+    '<div class="cc-card-title">Speak to the Consul</div>',
+    '<p class="cc-small cc-muted">Table a Matter for the Seat to carry. Brief — a title, and a sentence of context. The Consul integrates; Ministers will see it in due cycle.</p>',
+    '<div class="cc-consul-composer cc-mt-12">',
+    '<label class="cc-consul-composer-label" for="consulMatterTitle">Title</label>',
+    '<input id="consulMatterTitle" class="cc-consul-composer-input" type="text" maxlength="140" placeholder="One line: what the Consul should carry." autocomplete="off" />',
+    '<label class="cc-consul-composer-label" for="consulMatterContext">Context</label>',
+    '<textarea id="consulMatterContext" class="cc-consul-composer-textarea" rows="3" maxlength="480" placeholder="Optional: background the Seat should hold while carrying this."></textarea>',
+    '<div class="cc-consul-composer-actions">',
+    '<button class="cc-pref-btn" data-action="consul-table-matter">Table this Matter</button>',
+    '</div>',
+    '</div>',
+    '</article>',
+  ].join('');
+
   return [
     '<section class="cc-room">',
     CC.renderRoomHeader(room),
+    CC.renderConsulVoice(ordered),
     '<article class="cc-card">',
     '<div class="cc-card-title">The office, not the person</div>',
-    '<p class="cc-small cc-muted">The Consul is the Republic\u2019s Second Seat \u2014 beneath the Sovereign, above the Cabinet. The chair is institutional; its occupant rotates. The office persists across any holder.</p>',
-    '<p class="cc-small cc-mt-12">Currently occupied by <strong>Aurelius</strong>, who holds the seat in dual capacity with the Codex Builder\u2019s chair. Separation of offices is expected as the Order matures.</p>',
+    '<p class="cc-small cc-muted">The Consul is the Republic’s Second Seat — beneath the Sovereign, above the Cabinet. The chair is institutional; its occupant rotates. The office persists across any holder.</p>',
+    '<p class="cc-small cc-mt-12">Currently occupied by <strong>Aurelius</strong>, who holds the seat in dual capacity with the Codex Builder’s chair. Separation of offices is expected as the Order matures.</p>',
     '</article>',
     '<article class="cc-card">',
     '<div class="cc-card-title">Duties of the Seat</div>',
     '<p class="cc-small cc-muted">Three, across the monthly cycle of the Cabinet (Book V Article 5):</p>',
     '<div class="cc-cycle-list cc-mt-12">',
-    '<div class="cc-cycle-row"><span class="cc-cycle-week">Preside</span><span class="cc-cycle-note">Convene the Senate in Week 3; integrate Ministers\u2019 positions across domains</span></div>',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Preside</span><span class="cc-cycle-note">Convene the Senate in Week 3; integrate Ministers’ positions across domains</span></div>',
     '<div class="cc-cycle-row"><span class="cc-cycle-week">Present</span><span class="cc-cycle-note">Carry the unified Recommendation to the Sovereign in Week 4</span></div>',
-    '<div class="cc-cycle-row"><span class="cc-cycle-week">Oversee</span><span class="cc-cycle-note">Maintain institutional memory across Provinces \u2014 cross-repo sight between cycles</span></div>',
+    '<div class="cc-cycle-row"><span class="cc-cycle-week">Oversee</span><span class="cc-cycle-note">Maintain institutional memory across Provinces — cross-repo sight between cycles</span></div>',
     '</div>',
     '</article>',
+    mattersHtml,
+    composer,
     '<article class="cc-card">',
     '<div class="cc-card-title">Cross-Province sight</div>',
-    '<p class="cc-small cc-muted">Ministers speak for their portfolios. Builders speak for their venues. The Consul alone reads from every Province and sees the Republic whole. This vantage is the seat\u2019s mandate \u2014 the thread that binds Cabinet recommendations to Sovereign ratification.</p>',
+    '<p class="cc-small cc-muted">Ministers speak for their portfolios. Builders speak for their venues. The Consul alone reads from every Province and sees the Republic whole. This vantage is the seat’s mandate — the thread that binds Cabinet recommendations to Sovereign ratification.</p>',
     '</article>',
     CC.renderResidentList('consul'),
-    CC.renderFoundationBanner('The chamber stands; the Consul does not yet speak here. The Seat\u2019s voice activates at Borders stage, when the Cabinet\u2019s integrator can consult live across Ministers and Provinces.'),
     '</section>',
   ].join('');
 };
-
 // --- Forum ---
 CC.roomRenderers['forum'] = function(room) {
   return [
