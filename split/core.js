@@ -103,6 +103,101 @@ CC.copyLog = function() {
   }
 };
 
+// --- Matters before the Seat (the Consul's session ledger) -----------------
+// The Sovereign tables Matters to the Consul's Chamber; the Seat carries them
+// between Cabinet cycles. At Foundation the ledger is local-only: a
+// localStorage-backed list keyed by CC.MATTERS_KEY. Each Matter has a title,
+// one-line context, a status (open | carried | dismissed), and an ISO
+// timestamp. The Consul's voice is template-driven over this ledger; the
+// office speaks, not a person. Canon: institutional, not a personality.
+CC.MATTERS_KEY = 'cc-consul-matters';
+CC.MATTERS_MAX = 50;
+CC.MATTER_STATUSES = ['open', 'carried', 'dismissed'];
+
+CC.readMatters = function() {
+  try {
+    var raw = localStorage.getItem(CC.MATTERS_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+};
+
+CC.writeMatters = function(arr) {
+  if (!Array.isArray(arr)) return false;
+  if (arr.length > CC.MATTERS_MAX) arr = arr.slice(arr.length - CC.MATTERS_MAX);
+  try {
+    localStorage.setItem(CC.MATTERS_KEY, JSON.stringify(arr));
+    return true;
+  } catch (e) { return false; }
+};
+
+// Refresh the Consul chamber in place when the ledger changes so the voice
+// and ledger re-count without a route hop. Mirrors the Scriptorium pattern.
+CC.refreshConsul = function() {
+  if (!CC.state || CC.state.current_room !== 'consul') return;
+  var room = CC.ROOMS && CC.ROOMS.find(function(r) { return r.id === 'consul'; });
+  if (room && CC.renderRoom) CC.renderRoom(room);
+};
+
+CC.tableMatter = function(title, context) {
+  var t = String(title == null ? '' : title).trim();
+  if (!t) {
+    if (CC.toast) CC.toast('A Matter requires a title.');
+    return false;
+  }
+  var id;
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) id = crypto.randomUUID();
+  } catch (e) {}
+  if (!id) id = 'm-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  var matter = {
+    id: id,
+    ts: new Date().toISOString(),
+    title: t.slice(0, 140),
+    context: String(context == null ? '' : context).trim().slice(0, 480),
+    status: 'open',
+  };
+  var arr = CC.readMatters();
+  arr.push(matter);
+  if (!CC.writeMatters(arr)) {
+    if (CC.toast) CC.toast('Storage unavailable \u2014 Matter not tabled.');
+    return false;
+  }
+  if (CC.toast) CC.toast('The Seat has taken the Matter.');
+  CC.refreshConsul();
+  return true;
+};
+
+CC.updateMatter = function(id, status) {
+  if (!id) return false;
+  if (CC.MATTER_STATUSES.indexOf(status) === -1) return false;
+  var arr = CC.readMatters();
+  var changed = false;
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] && arr[i].id === id) {
+      arr[i].status = status;
+      changed = true;
+      break;
+    }
+  }
+  if (!changed) return false;
+  CC.writeMatters(arr);
+  if (CC.toast) {
+    var label = status === 'carried' ? 'Matter carried to Cabinet.'
+      : status === 'dismissed' ? 'Matter dismissed.'
+      : 'Matter reopened.';
+    CC.toast(label);
+  }
+  CC.refreshConsul();
+  return true;
+};
+
+CC.clearMatters = function() {
+  try { localStorage.removeItem(CC.MATTERS_KEY); } catch (e) {}
+  if (CC.toast) CC.toast('The ledger is cleared.');
+  CC.refreshConsul();
+};
+
 // --- Routing ---
 // Hash-based routing: #/senate, #/forum, #/ministers/orinth, etc.
 CC.parseRoute = function() {
@@ -385,6 +480,25 @@ CC.dispatchAction = function(action, el, e) {
       if (href) window.open(href, '_blank', 'noopener');
       break;
     }
+    case 'consul-table-matter': {
+      // Read the composer's two inputs (keyed by id) at click-time; the
+      // re-render will clear them on success.
+      const titleEl = CC.$('#consulMatterTitle');
+      const ctxEl = CC.$('#consulMatterContext');
+      const title = titleEl ? titleEl.value : '';
+      const ctx = ctxEl ? ctxEl.value : '';
+      if (CC.tableMatter) CC.tableMatter(title, ctx);
+      break;
+    }
+    case 'consul-update-matter': {
+      const mid = el.getAttribute('data-matter-id');
+      const status = el.getAttribute('data-status');
+      if (mid && status && CC.updateMatter) CC.updateMatter(mid, status);
+      break;
+    }
+    case 'consul-clear-matters':
+      if (CC.clearMatters) CC.clearMatters();
+      break;
     default:
       // Silent for unknown actions; Builders will add more
       break;

@@ -214,6 +214,50 @@ async function main() {
   await page.click('[data-action="closeOverlay"]');
   await page.waitForTimeout(40);
 
+  // The Consul's Chamber — voice surface + Matters ledger + composer
+  console.log('\n=== Consul voice surface ===');
+  await page.evaluate(() => { window.location.hash = '#/consul'; });
+  await page.waitForTimeout(100);
+  const voiceCard = await page.$('.cc-consul-voice');
+  assert(!!voiceCard, 'Consul voice card renders at /consul');
+  const voiceLine = await page.$('.cc-consul-voice-line');
+  assert(!!voiceLine, 'Consul voice line present');
+  const composerTitleInput = await page.$('#consulMatterTitle');
+  assert(!!composerTitleInput, 'Composer title input present');
+  const composerSubmit = await page.$('[data-action="consul-table-matter"]');
+  assert(!!composerSubmit, 'Composer submit button present');
+  // Clear any pre-existing Matters so assertions are deterministic.
+  await page.evaluate(() => localStorage.removeItem('cc-consul-matters'));
+  await page.evaluate(() => { if (CC && CC.refreshConsul) CC.refreshConsul(); });
+  await page.waitForTimeout(40);
+  // Empty-state voice line mentions silence.
+  const silentLine = await page.textContent('.cc-consul-voice-line');
+  assert(/silent/i.test(silentLine || ''), 'Empty ledger voice line mentions silence ("' + (silentLine || '').slice(0, 80) + '")');
+  // Table a Matter end-to-end.
+  await page.fill('#consulMatterTitle', 'Ratify Book VI');
+  await page.fill('#consulMatterContext', 'Draft by Ashara awaiting Senate floor.');
+  await page.click('[data-action="consul-table-matter"]');
+  await page.waitForTimeout(80);
+  const matterRows = await page.$$('.cc-consul-matter');
+  assert(matterRows.length === 1, 'One Matter row after tabling (got ' + matterRows.length + ')');
+  const matterStatus = await page.getAttribute('.cc-consul-matter', 'data-status');
+  assert(matterStatus === 'open', 'New Matter is open (got "' + matterStatus + '")');
+  const voiceLineAfter = await page.textContent('.cc-consul-voice-line');
+  assert(/one matter stands/i.test(voiceLineAfter || ''),
+    'Voice line reads One Matter stands after table ("' + (voiceLineAfter || '').slice(0, 80) + '")');
+  // Carry to Cabinet — status transitions.
+  await page.click('.cc-consul-matter [data-action="consul-update-matter"][data-status="carried"]');
+  await page.waitForTimeout(80);
+  const carriedStatus = await page.getAttribute('.cc-consul-matter', 'data-status');
+  assert(carriedStatus === 'carried', 'Matter transitions to carried (got "' + carriedStatus + '")');
+  // Clear ledger — persistence + voice reset.
+  await page.click('[data-action="consul-clear-matters"]');
+  await page.waitForTimeout(80);
+  const afterClear = await page.$$('.cc-consul-matter');
+  assert(afterClear.length === 0, 'Ledger empty after clear (got ' + afterClear.length + ')');
+  const persistedEmpty = await page.evaluate(() => localStorage.getItem('cc-consul-matters'));
+  assert(persistedEmpty === null, 'cc-consul-matters removed from storage on clear');
+
   // Accessibility surface checks
   console.log('\n=== Accessibility ===');
   const skipLink = await page.$('.cc-skip-link');
